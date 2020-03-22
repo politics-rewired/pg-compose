@@ -74,6 +74,7 @@ const Index = Record({
     unique: Boolean,
     include: Union(PgIdentifier, Array(PgIdentifier)),
     primaryKey: Boolean,
+    primaryKeyConstraintName: PgIdentifier,
   }),
 );
 
