@@ -8,6 +8,17 @@ import {
 import { CreateTableOperation, RenameTableOperation } from "./reconcile";
 import { match } from "runtypes";
 import { RunContextI } from "../core";
+import {
+  ColumnDefaultI,
+  ColumnFunctionDefault,
+  ColumnLiteralDefault,
+} from "./records";
+
+export const makeDefaultString = (columnDefault: ColumnDefaultI) =>
+  match(
+    [ColumnFunctionDefault, ({ fn }) => fn],
+    [ColumnLiteralDefault, l => `'${l}'`],
+  )(columnDefault);
 
 export const makeToStatement = (context: RunContextI) =>
   match(
@@ -24,7 +35,7 @@ export const makeToStatement = (context: RunContextI) =>
       CreateColumnOperation,
       op =>
         [
-          `ALTER TABLE "${context.schema}"."${op.table.name}" add column ${op.columnName} ${op.column.type}`,
+          `ALTER TABLE "${context.schema}"."${op.table.name}" add column ${op.column.name} ${op.column.type}`,
         ]
           .concat(
             op.column.nullable === true || op.column.nullable === undefined
@@ -34,36 +45,36 @@ export const makeToStatement = (context: RunContextI) =>
           .concat(
             op.column.default === undefined
               ? []
-              : [`DEFAULT '${op.column.default}'`],
+              : [`DEFAULT ${makeDefaultString(op.column.default)}`],
           )
           .join(" "),
     ],
     [
       RenameColumnOperation,
       op =>
-        `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${op.column.previous_name} rename to ${op.columnName}`,
+        `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${op.column.previous_name} rename to ${op.column.name}`,
     ],
     [
       SetColumnDataTypeOperation,
       op =>
-        `ALTER TABLE "${context.schema}"."${op.table.name}" column ${op.columnName} set data type ${op.column.type}`,
+        `ALTER TABLE "${context.schema}"."${op.table.name}" column ${op.column.name} set data type ${op.column.type}`,
     ],
     [
       SetColumnDefaultOperation,
       op =>
         `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${
-          op.columnName
+          op.column.name
         } ${
           op.column.default === undefined
-            ? `set default '${op.column.default}'`
-            : "drop default"
+            ? "drop default"
+            : `set default ${makeDefaultString(op.column.default)}`
         }`,
     ],
     [
       SetColumnNullableOperation,
       op =>
         `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${
-          op.columnName
+          op.column.name
         } ${op.column.nullable ? "DROP NOT NULL" : "SET NOT NULL"}`,
     ],
   );

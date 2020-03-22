@@ -27,3 +27,47 @@ export interface PgObject<ObjectType, OperationType> {
   ) => OperationType[];
   toStatement: (context: RunContextI) => (operation: OperationType) => string;
 }
+
+interface NameableObject {
+  name: string;
+  previous_name?: string;
+}
+
+export const createOperationsForNameableObject = <ObjectType, OperationType>(
+  desiredObjects: (NameableObject & ObjectType)[] | undefined,
+  currentObjects: (NameableObject & ObjectType)[] | undefined,
+  reconcileFn: (
+    desired: ObjectType | undefined,
+    current: ObjectType | undefined,
+  ) => OperationType[],
+): OperationType[] => {
+  const dObjects = desiredObjects || [];
+  const cObjects = currentObjects || [];
+
+  // Accumulate create or alter operations
+  const createOrAlterOperations: OperationType[] = dObjects.reduce(
+    (acc: OperationType[], desired) => {
+      const current =
+        cObjects.find(current => current.name === desired.name) ||
+        cObjects.find(current => current.name === desired.previous_name);
+
+      return acc.concat(reconcileFn(desired, current));
+    },
+    [],
+  );
+
+  const dropOperations: OperationType[] = cObjects.reduce(
+    (acc: OperationType[], current) => {
+      const desired =
+        dObjects.find(desired => desired.name === current.name) ||
+        dObjects.find(desired => desired.previous_name === current.name);
+
+      return acc.concat(
+        desired === undefined ? reconcileFn(undefined, current) : [],
+      );
+    },
+    [],
+  );
+
+  return createOrAlterOperations.concat(dropOperations);
+};

@@ -1,5 +1,5 @@
 {
-  "name": "pga",
+  "name": "pg-compose",
   "version": "0.0.1",
   "description": "",
   "main": "dist/index.js",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/graphile/worker.git"
+    "url": "git+ssh://git@github.com/politics-rewired/pg-compose.git"
   },
   "keywords": [
     "postgresql",
@@ -33,12 +33,12 @@
     "background",
     "tasks"
   ],
-  "author": "Benjie Gillam <code@benjiegillam.com>",
+  "author": "Ben Packer <ben.paul.ryan.packer@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/graphile/worker/issues"
+    "url": "https://github.com/politics-rewired/pg-compose/issues"
   },
-  "homepage": "https://github.com/graphile/worker#readme",
+  "homepage": "https://github.com/politics-rewired/pg-compose#readme",
   "dependencies": {
     "@types/lodash": "^4.14.149",
     "@types/yaml": "^1.2.0",

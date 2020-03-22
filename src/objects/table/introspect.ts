@@ -42,16 +42,15 @@ export const introspectTable = async (
 
   const pgAttributes: PgAttribute[] = result.rows;
 
-  const columns: {
-    [columnName: string]: ColumnI;
-  } = {};
+  const columns: ColumnI[] = [];
 
   for (const attr of pgAttributes) {
-    columns[attr.attname] = {
+    columns.push({
+      name: attr.attname,
       type: attr.typname,
       nullable: !attr.attnotnull,
       default: attr.default_expr || undefined,
-    };
+    });
   }
 
   const table: TableI = {

@@ -1,6 +1,7 @@
 import { Record, Literal, Static, Union } from "runtypes";
-import { TableI, Table } from "./records";
-import { ColumnOperationType, reconcileColumns } from "./columns";
+import { ColumnI, TableI, Table } from "./records";
+import { ColumnOperationType, makeReconcileColumns } from "./columns";
+import { createOperationsForNameableObject } from "../core";
 
 /**
  * -------------------- Tables --------------------
@@ -35,7 +36,7 @@ export const reconcileTables = (
 ): TableOperationType[] => {
   const operations: TableOperationType[] = [];
 
-  if (!current) {
+  if (current === undefined) {
     // Create table
     operations.push({
       code: TableOpCodes.CreateTable,
@@ -51,36 +52,23 @@ export const reconcileTables = (
     }
   }
 
-  // For columns, we need a mock current
-  const maybeMockCurrent = current
-    ? current
-    : Object.assign({}, desired, { columns: {} });
-
-  // Accumulate column reconciliations
-  const columnOperations = Object.keys(desired.columns).reduce(
-    (acc: ColumnOperationType[], columnName) => {
-      const desiredColumn = desired.columns[columnName];
-      const currentColumn = desiredColumn.previous_name
-        ? maybeMockCurrent.columns[columnName] ||
-          maybeMockCurrent.columns[desiredColumn.previous_name]
-        : maybeMockCurrent.columns[columnName];
-
-      return acc.concat(
-        reconcileColumns(
-          desiredColumn,
-          currentColumn,
-          columnName,
-          desired,
-          maybeMockCurrent,
-        ),
-      );
-    },
-    [],
+  const columnOperations = createOperationsForNameableObject<
+    ColumnI,
+    ColumnOperationType
+  >(
+    desired.columns,
+    current === undefined ? [] : current.columns,
+    makeReconcileColumns(desired),
   );
 
   // Accumulate primary key reconciliations
-  // Accumulate index reconciliations
+  // const indexOperations = reconileIndex(
+  //   desired.indexes,
+  //   current?.indexes,
+  // );
+
   // Accumulate foreign key reconciliations
+
   // Accumulate trigger reconciliations
 
   return operations.concat(columnOperations);
