@@ -1,8 +1,9 @@
 import { PgObject, RunContextI, PgIdentifierI } from "./core";
 import { Pool } from "pg";
 
+const pool = new Pool();
+
 export const checkIdempotency = async <ObjectType, OperationType>(
-  pool: Pool,
   object: PgObject<ObjectType, OperationType>,
   desired: ObjectType,
   identifier: PgIdentifierI,

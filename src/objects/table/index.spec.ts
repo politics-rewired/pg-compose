@@ -1,13 +1,9 @@
 import { TableObject } from "./index";
-import { Pool } from "pg";
 import { checkIdempotency } from "../test-helpers";
-
-const pool = new Pool();
 
 describe("after migration, the operation list should be empty", () => {
   test("basic table", async () => {
     const newOperationList = await checkIdempotency(
-      pool,
       TableObject,
       {
         kind: "Table",
@@ -31,7 +27,6 @@ describe("after migration, the operation list should be empty", () => {
 
   test("table with default and not nullable columns", async () => {
     const newOperationList = await checkIdempotency(
-      pool,
       TableObject,
       {
         kind: "Table",
@@ -57,7 +52,6 @@ describe("after migration, the operation list should be empty", () => {
 
   test("table with primary keys", async () => {
     const newOperationList = await checkIdempotency(
-      pool,
       TableObject,
       {
         kind: "Table",

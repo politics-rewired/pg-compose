@@ -6,7 +6,7 @@ import {
   SetColumnNullableOperation,
 } from "./columns";
 import { CreateTableOperation, RenameTableOperation } from "./reconcile";
-import { match } from "runtypes";
+import { match, Unknown } from "runtypes";
 import { RunContextI } from "../core";
 import {
   ColumnDefaultI,
@@ -76,5 +76,11 @@ export const makeToStatement = (context: RunContextI) =>
         `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${
           op.column.name
         } ${op.column.nullable ? "DROP NOT NULL" : "SET NOT NULL"}`,
+    ],
+    [
+      Unknown,
+      op => {
+        throw new Error(`Could not match operation: ${JSON.stringify(op)}`);
+      },
     ],
   );

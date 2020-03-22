@@ -4,7 +4,9 @@ import { PoolClient } from "pg";
 export const PgIdentifier = String.withConstraint(
   s => s.match(/[^a-z0-9_]/) === null,
   { name: "PgIdentifier should be all alphanumeric lower case" },
-);
+).withConstraint(s => s[0].match(/[0-9]/) === null, {
+  name: "PgIdentifier should not start with a number",
+});
 
 export type PgIdentifierI = Static<typeof PgIdentifier>;
 

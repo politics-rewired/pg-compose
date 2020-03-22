@@ -22,13 +22,37 @@ const ColumnDefault = Union(ColumnFunctionDefault, ColumnLiteralDefault);
 const Column = Record({
   name: PgIdentifier,
   type: String,
-}).And(
-  Partial({
-    previous_name: PgIdentifier,
-    default: ColumnDefault,
-    nullable: Boolean,
-  }),
-);
+})
+  .And(
+    Partial({
+      previous_name: PgIdentifier,
+      default: ColumnDefault,
+      nullable: Boolean,
+    }),
+  )
+  .withConstraint(
+    col => {
+      if (
+        col.default === undefined ||
+        ColumnFunctionDefault.guard(col.default)
+      ) {
+        return true;
+      }
+
+      if (["numeric", "decimal", "real"].includes(col.type.toLowerCase())) {
+        const defaultAsFloat = parseFloat(col.default);
+        return parseFloat(defaultAsFloat.toString()) == parseFloat(col.default);
+      }
+
+      if (["timestamp", "date", "time"].includes(col.type.toLowerCase())) {
+        const defaultAsDate = new Date(col.default);
+        return new Date(defaultAsDate.toString()) == new Date(col.default);
+      }
+
+      return true;
+    },
+    { name: "Column default must be numeric if its type is numeric" },
+  );
 
 const ForeignKey = Record({
   name: PgIdentifier,
@@ -93,18 +117,6 @@ const Table = Record({
     }),
   )
   .withConstraint(
-    table =>
-      Object.keys(table.columns).every(colName => PgIdentifier.guard(colName)),
-    { name: "Column names must be safe PgIdentifiers" },
-  )
-  .withConstraint(
-    table =>
-      Object.keys(table.indexes || {}).every(indexName =>
-        PgIdentifier.guard(indexName),
-      ),
-    { name: "Index names must be safe PgIdentifiers" },
-  )
-  .withConstraint(
     table => {
       const indexes = table.indexes;
 
@@ -112,11 +124,7 @@ const Table = Record({
         return true;
       }
 
-      return (
-        Object.keys(indexes).filter(
-          indexName => indexes[indexName].primaryKey === true,
-        ).length <= 1
-      );
+      return indexes.filter(index => index.primaryKey === true).length <= 1;
     },
     { name: "Only 1 primary key per table" },
   );
