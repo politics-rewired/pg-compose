@@ -61,6 +61,7 @@ describe("after migration, the operation list should be empty", () => {
             name: "id",
             type: "uuid",
             default: { type: "function", fn: "uuid_generate_v1mc()" },
+            nullable: false,
           },
           {
             name: "full_name",
@@ -71,7 +72,8 @@ describe("after migration, the operation list should be empty", () => {
         indexes: [
           {
             name: "people_primary_key",
-            on_columns: "id",
+            on: [{ column: "id" }],
+            unique: true,
             primaryKey: true,
           },
         ],

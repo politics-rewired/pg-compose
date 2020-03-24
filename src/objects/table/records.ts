@@ -63,20 +63,34 @@ const ForeignKey = Record({
   }),
 });
 
-const Index = Record({
-  name: PgIdentifier,
-  on_columns: Union(PgIdentifier, Array(PgIdentifier)),
+const IndexColumn = Record({
+  column: PgIdentifier,
 }).And(
   Partial({
-    type: String,
-    previous_name: PgIdentifier,
-    where: String,
-    unique: Boolean,
-    include: Union(PgIdentifier, Array(PgIdentifier)),
-    primaryKey: Boolean,
-    primaryKeyConstraintName: PgIdentifier,
+    order: Union(Literal("ASC"), Literal("DESC")),
+    nulls: Union(Literal("FIRST"), Literal("LAST")),
   }),
 );
+
+const Index = Record({
+  name: PgIdentifier,
+  on: Array(IndexColumn),
+})
+  .And(
+    Partial({
+      type: String,
+      previous_name: PgIdentifier,
+      where: String,
+      unique: Boolean,
+      include: Array(Record({ column: PgIdentifier })),
+      primaryKey: Boolean,
+      primaryKeyConstraintName: PgIdentifier,
+    }),
+  )
+  .withConstraint(
+    idx => (idx.primaryKey === true ? idx.unique === true : true),
+    { name: "Primary keys must be unique" },
+  );
 
 const Trigger = Record({
   name: PgIdentifier,
@@ -128,6 +142,24 @@ const Table = Record({
       return indexes.filter(index => index.primaryKey === true).length <= 1;
     },
     { name: "Only 1 primary key per table" },
+  )
+  .withConstraint(
+    table => {
+      const primaryKey = table.indexes?.find(idx => idx.primaryKey);
+
+      if (primaryKey === undefined) {
+        return true;
+      }
+
+      const columnsInPrimaryKey = primaryKey.on.map(indexCol =>
+        table.columns.find(col => col.name === indexCol.column),
+      );
+
+      return columnsInPrimaryKey.every(col => col?.nullable === false);
+    },
+    {
+      name: "Primary keys must be on non-nullable columns ",
+    },
   );
 
 interface TableI extends Static<typeof Table> {}

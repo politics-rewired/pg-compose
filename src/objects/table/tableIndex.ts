@@ -1,5 +1,5 @@
 import { IndexI, Index, Table, TableI } from "./records";
-import { Record, Literal, Static, Tuple, Union, Void, match } from "runtypes";
+import { Record, Literal, Static, Tuple, Union, match } from "runtypes";
 
 export enum IndexOpCodes {
   CreateIndex = "create_index",
@@ -9,37 +9,37 @@ export enum IndexOpCodes {
   DropPrimaryKey = "drop_primary_key",
 }
 
-const CreateIndexOperation = Record({
+export const CreateIndexOperation = Record({
   code: Literal(IndexOpCodes.CreateIndex),
   index: Index,
   table: Table,
 });
 
-const RenameIndexOperation = Record({
+export const RenameIndexOperation = Record({
   code: Literal(IndexOpCodes.RenameIndex),
   index: Index,
   table: Table,
 });
 
-const DropIndexOperation = Record({
+export const DropIndexOperation = Record({
   code: Literal(IndexOpCodes.DropIndex),
   index: Index,
   table: Table,
 });
 
-const MakeIndexPrimaryKeyOperation = Record({
+export const MakeIndexPrimaryKeyOperation = Record({
   code: Literal(IndexOpCodes.MakeIndexPrimaryKey),
   index: Index,
   table: Table,
 });
 
-const DropPrimaryKeyOperation = Record({
+export const DropPrimaryKeyOperation = Record({
   code: Literal(IndexOpCodes.DropPrimaryKey),
   index: Index,
   table: Table,
 });
 
-const IndexOperation = Union(
+export const IndexOperation = Union(
   CreateIndexOperation,
   RenameIndexOperation,
   DropIndexOperation,
@@ -49,8 +49,8 @@ const IndexOperation = Union(
 
 export type IndexOperationType = Static<typeof IndexOperation>;
 
-const CreateIndexInput = Tuple(Index, Void);
-const DropIndexInput = Tuple(Void, Index);
+const CreateIndexInput = Tuple(Index, Literal(undefined));
+const DropIndexInput = Tuple(Literal(undefined), Index);
 const AlterIndexInput = Tuple(Index, Index);
 
 const ReconcileIndexInput = Union(
@@ -63,9 +63,24 @@ const matchFn = (desiredTable: TableI) =>
   match(
     [
       CreateIndexInput,
-      ([desired]) => [
-        { code: IndexOpCodes.CreateIndex, index: desired, table: desiredTable },
-      ],
+      ([desired]) =>
+        [
+          {
+            code: IndexOpCodes.CreateIndex,
+            index: desired,
+            table: desiredTable,
+          },
+        ].concat(
+          desired.primaryKey
+            ? [
+                {
+                  code: IndexOpCodes.MakeIndexPrimaryKey,
+                  index: desired,
+                  table: desiredTable,
+                },
+              ]
+            : [],
+        ),
     ],
     [
       DropIndexInput,
@@ -91,7 +106,33 @@ const matchFn = (desiredTable: TableI) =>
         ) {
           operations.push({
             code: IndexOpCodes.RenameIndex,
-            index: current,
+            index: desired,
+            table: desiredTable,
+          });
+        }
+
+        if (desired.unique === true && desired.unique !== current.unique) {
+          operations.push({
+            code: IndexOpCodes.RenameIndex,
+            index: Object.assign({}, desired, {
+              previous_name: desired.name,
+              name: `${desired.name}_cordoned`,
+            }),
+            table: desiredTable,
+          });
+
+          operations.push({
+            code: IndexOpCodes.CreateIndex,
+            index: desired,
+            table: desiredTable,
+          });
+
+          operations.push({
+            code: IndexOpCodes.DropIndex,
+            index: Object.assign({}, current, {
+              previous_name: desired.name,
+              name: `${desired.name}_cordoned`,
+            }),
             table: desiredTable,
           });
         }
@@ -108,7 +149,7 @@ const matchFn = (desiredTable: TableI) =>
         }
 
         if (
-          current.primaryKey == true &&
+          current.primaryKey === true &&
           desired.primaryKey !== current.primaryKey
         ) {
           operations.push({
@@ -129,10 +170,9 @@ const matchFn = (desiredTable: TableI) =>
     ],
   );
 
-export const reconileIndex = (
+export const makeReconcileIndexes = (desiredTable: TableI) => (
   desired: IndexI | undefined,
   current: IndexI | undefined,
-  desiredTable: TableI,
 ): IndexOperationType[] => {
   const input = [desired, current];
 
