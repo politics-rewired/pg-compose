@@ -1,5 +1,18 @@
 # pga
 
+## Progress
+
+- [x] Columns
+- [x] Indexes
+- [ ] Foreign keys
+- [ ] Table dropping
+- [ ] Functions
+- [ ] Triggers
+- [ ] Extension
+- [ ] Traits
+
+## Goals
+
 The goal is to implement a pga package, which exposes objects (tables,
 functions, and jobs) and traits.
 
