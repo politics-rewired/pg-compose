@@ -9,7 +9,11 @@
 - [ ] Functions
 - [ ] Triggers
 - [ ] Extension
+  - [ ] rename
+  - [ ] add trigger
+  - [ ] add constraint
 - [ ] Traits
+- [ ] Functions that take traits (generics)
 
 ## Goals
 
