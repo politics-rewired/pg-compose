@@ -15,6 +15,12 @@ import {
   IndexOperation,
 } from "./tableIndex";
 import {
+  TriggerOperation,
+  CreateTriggerOperation,
+  DropTriggerOperation,
+  ReorderTriggerOperation,
+} from "./triggers";
+import {
   CreateTableOperation,
   RenameTableOperation,
   TableOperation,
@@ -37,6 +43,9 @@ const makeDefaultString = (columnDefault: ColumnDefaultI) =>
     [ColumnFunctionDefault, ({ fn }) => fn],
     [ColumnLiteralDefault, l => `'${l}'`],
   )(columnDefault);
+
+const generateTriggerName = (name: string, order: number, table: string) =>
+  `_${order.toString().padStart(3, "0")}_${table}_${name}`;
 
 const makeTableToStatement = (context: RunContextI) =>
   match(
@@ -157,11 +166,90 @@ export const makeIndexToStatement = (context: RunContextI) =>
     ],
   );
 
+export const makeTriggerToStatement = (context: RunContextI) =>
+  match(
+    [
+      CreateTriggerOperation,
+      op => {
+        const functionName = `tg__${op.table.name}__${op.trigger.name}`;
+
+        const triggerName = generateTriggerName(
+          op.trigger.name,
+          op.trigger.order,
+          op.table.name,
+        );
+
+        const createOrReplaceFunctionStatement = `
+          CREATE OR REPLACE FUNCTION "${context.schema}".${functionName}() returns trigger as $$ ${op.trigger.body} $$ language plpgsql strict;
+        `;
+
+        const createTriggerStatement = `
+          CREATE TRIGGER ${triggerName}
+            ${op.trigger.timing.replace("_", " ")}
+            ON ${makeTableIdentifier(context.schema, op.table.name)}
+            FOR EACH ROW
+            ${op.trigger.when ? "WHEN ${op.trigger.when" : ""}
+            EXECUTE FUNCTION ${functionName}();
+        `;
+
+        return `${createOrReplaceFunctionStatement} ${createTriggerStatement}`;
+      },
+    ],
+    [
+      DropTriggerOperation,
+      op => {
+        const functionName = `tg__${op.table.name}__${op.trigger.name}`;
+
+        const triggerName = generateTriggerName(
+          op.trigger.name,
+          op.trigger.order,
+          op.table.name,
+        );
+
+        const dropFunctionStatement = `DROP FUNCTION "${context.schema}".${functionName};`;
+        const dropTriggerStatement = `DROP TRIGGER ${triggerName} ON ${makeTableIdentifier(
+          context.schema,
+          op.table.name,
+        )};`;
+
+        return `${dropTriggerStatement} ${dropFunctionStatement}`;
+      },
+    ],
+    [
+      ReorderTriggerOperation,
+      op => {
+        const oldTriggerName = generateTriggerName(
+          op.trigger.name,
+          op.trigger.previous_order as number,
+          op.table.name,
+        );
+
+        const newTriggerName = generateTriggerName(
+          op.trigger.name,
+          op.trigger.order,
+          op.table.name,
+        );
+
+        return `ALTER TRIGGER ${oldTriggerName} ON ${makeTableIdentifier(
+          context.schema,
+          op.table.name,
+        )} RENAME TO ${newTriggerName};`;
+      },
+    ],
+    [
+      Unknown,
+      op => {
+        throw new Error(`Unknown operation: ${JSON.stringify(op, null, 2)}`);
+      },
+    ],
+  );
+
 export const makeToStatement = (context: RunContextI) =>
   match(
     [TableOperation, makeTableToStatement(context)],
     [ColumnOperation, makeColumnToStatement(context)],
     [IndexOperation, makeIndexToStatement(context)],
+    [TriggerOperation, makeTriggerToStatement(context)],
     [
       Unknown,
       op => {

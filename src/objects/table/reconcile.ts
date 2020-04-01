@@ -1,8 +1,9 @@
 import { Record, Literal, Static, Union } from "runtypes";
-import { ColumnI, TableI, Table, IndexI } from "./records";
+import { ColumnI, TableI, Table, IndexI, TriggerI } from "./records";
 import { ColumnOperationType, makeReconcileColumns } from "./columns";
 import { createOperationsForNameableObject } from "../core";
 import { IndexOperationType, makeReconcileIndexes } from "./tableIndex";
+import { TriggerOperationType, makeReconcileTriggers } from "./triggers";
 
 /**
  * -------------------- Tables --------------------
@@ -30,7 +31,8 @@ export const TableOperation = Union(CreateTableOperation, RenameTableOperation);
 export type TableOperationType =
   | Static<typeof TableOperation>
   | ColumnOperationType
-  | IndexOperationType;
+  | IndexOperationType
+  | TriggerOperationType;
 
 export const reconcileTables = (
   desired: TableI,
@@ -73,8 +75,20 @@ export const reconcileTables = (
     makeReconcileIndexes(desired),
   );
 
-  // Accumulate foreign key reconciliations
   // Accumulate trigger reconciliations
+  const triggerOperations = createOperationsForNameableObject<
+    TriggerI,
+    TriggerOperationType
+  >(
+    desired.triggers,
+    current === undefined ? [] : current.triggers,
+    makeReconcileTriggers(desired),
+  );
 
-  return operations.concat(columnOperations).concat(indexOperations);
+  // Accumulate foreign key reconciliations
+
+  return operations
+    .concat(columnOperations)
+    .concat(indexOperations)
+    .concat(triggerOperations);
 };

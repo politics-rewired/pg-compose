@@ -7,6 +7,8 @@ import {
   Union,
   Partial,
   Static,
+  Dictionary,
+  Number,
 } from "runtypes";
 import { PgIdentifier } from "../core";
 
@@ -56,12 +58,28 @@ const Column = Record({
 
 const ForeignKey = Record({
   name: PgIdentifier,
-  on_column: PgIdentifier,
-  references: Record({
-    table: PgIdentifier,
-    column: PgIdentifier,
-  }),
+  on: Array(PgIdentifier),
+  references: Array(
+    Record({
+      table: PgIdentifier,
+      column: PgIdentifier,
+    }),
+  ),
 });
+
+const CheckConstraint = Record({
+  name: PgIdentifier,
+  expr: String,
+}).And(
+  Partial({
+    previous_name: PgIdentifier,
+  }),
+);
+
+const UniqueConstraint = Record({
+  name: PgIdentifier,
+  on: Array(PgIdentifier),
+}).And(Partial({ previous_name: PgIdentifier }));
 
 const IndexColumn = Record({
   column: PgIdentifier,
@@ -92,53 +110,91 @@ const Index = Record({
     { name: "Primary keys must be unique" },
   );
 
+const TriggerTiming = Union(
+  Literal("before_insert"),
+  Literal("instead_of_insert"),
+  Literal("after_insert"),
+  Literal("before_update"),
+  Literal("instead_of_update"),
+  Literal("after_update"),
+  Literal("before_delete"),
+  Literal("instead_of_delete"),
+  Literal("after_delete"),
+);
+
 const Trigger = Record({
   name: PgIdentifier,
-  when: String,
-  for_each: Union(Literal("row"), Literal("statement")),
-}).And(
-  Record({
-    language: PgIdentifier,
-    body: String,
-  }).Or(
-    Record({
-      function: PgIdentifier,
-    }),
+  for_each: Union(
+    Literal("row"),
+    // Literal("statement")
   ),
+  order: Number,
+  language: Literal("plpgsql"),
+  body: String,
+  timing: TriggerTiming,
+}).And(
+  Partial({
+    function: PgIdentifier,
+    when: String,
+    previous_name: PgIdentifier,
+    previous_order: Number,
+  }),
 );
+
+const TraitImplementation = Record({
+  trait: String,
+}).And(
+  Partial({
+    via: Partial({
+      columns: Dictionary(
+        Union(String, Record({ type: Literal("getter"), name: PgIdentifier })),
+        "string",
+      ),
+      getters: Dictionary(String, "string"),
+    }),
+  }),
+);
+
+const GetterVolatility = Union(Literal("immutable"), Literal("stable"));
+const PgLanguageOptions = Union(Literal("sql"), Literal("plpgsql"));
+
+const GetterContract = Record({
+  name: PgIdentifier,
+  returns: String,
+});
+
+const Getter = GetterContract.And(
+  Record({
+    body: String,
+    language: PgLanguageOptions,
+    volatility: GetterVolatility,
+  }),
+);
+
+const TableSpec = {
+  previous_name: PgIdentifier,
+  indexes: Array(Index),
+  foreignKeys: Array(ForeignKey),
+  checks: Array(CheckConstraint),
+  uniques: Array(UniqueConstraint),
+  implements: Array(TraitImplementation),
+  getters: Array(Getter),
+  triggers: Array(Trigger),
+  rls_enabled: Boolean,
+};
 
 const Table = Record({
   kind: Literal("Table"),
   name: PgIdentifier,
   columns: Array(Column),
 })
-  .And(
-    Partial({
-      previous_name: PgIdentifier,
-      indexes: Array(Index),
-      foreignKeys: Array(ForeignKey),
-      triggers: Record({
-        before_insert: Array(Trigger),
-        after_insert: Array(Trigger),
-        instead_of_insert: Array(Trigger),
-        before_update: Array(Trigger),
-        after_update: Array(Trigger),
-        instead_of_update: Array(Trigger),
-        before_delete: Array(Trigger),
-        after_delete: Array(Trigger),
-        instead_of_delete: Array(Trigger),
-      }),
-      rls_enabled: Boolean,
-    }),
-  )
+  .And(Partial(TableSpec))
   .withConstraint(
     table => {
       const indexes = table.indexes;
-
       if (indexes === undefined) {
         return true;
       }
-
       return indexes.filter(index => index.primaryKey === true).length <= 1;
     },
     { name: "Only 1 primary key per table" },
@@ -146,15 +202,12 @@ const Table = Record({
   .withConstraint(
     table => {
       const primaryKey = table.indexes?.find(idx => idx.primaryKey);
-
       if (primaryKey === undefined) {
         return true;
       }
-
       const columnsInPrimaryKey = primaryKey.on.map(indexCol =>
         table.columns.find(col => col.name === indexCol.column),
       );
-
       return columnsInPrimaryKey.every(col => col?.nullable === false);
     },
     {
@@ -162,24 +215,79 @@ const Table = Record({
     },
   );
 
+const TableExtension = Partial({
+  addColumns: Array(Column),
+  addIndexes: Array(Index),
+  addTriggers: Array(Trigger),
+  addChecks: Array(CheckConstraint),
+  addUniques: Array(UniqueConstraint),
+  addForeignKeys: Array(ForeignKey),
+});
+
+const TraitRequirement = Partial({
+  columns: Array(Column),
+  getters: Array(GetterContract),
+});
+
+const Trait = Record({
+  kind: Literal("Trait"),
+  name: String,
+  requires: TraitRequirement,
+}).And(
+  Partial({
+    provides: TableExtension,
+  }),
+);
+
+const Module = Record({
+  tables: Dictionary(Table, "string"),
+}).And(
+  Partial({
+    traits: Dictionary(Trait, "string"),
+  }),
+);
+
 interface TableI extends Static<typeof Table> {}
 interface ColumnI extends Static<typeof Column> {}
 interface ForeignKeyI extends Static<typeof ForeignKey> {}
 interface IndexI extends Static<typeof Index> {}
+interface TableExtensionI extends Static<typeof TableExtension> {}
+interface TraitImplementationI extends Static<typeof TraitImplementation> {}
+interface TraitRequirementI extends Static<typeof TraitRequirement> {}
+interface TraitI extends Static<typeof Trait> {}
+interface GetterI extends Static<typeof Getter> {}
+interface ModuleI extends Static<typeof Module> {}
 type TriggerI = Static<typeof Trigger>;
 type ColumnDefaultI = Static<typeof ColumnDefault>;
+type GetterVolatilityI = Static<typeof GetterVolatility>;
+type PgLanguageOptionsI = Static<typeof PgLanguageOptions>;
 
 export {
   Table,
+  Trait,
+  TraitImplementation,
+  TableExtension,
   Column,
   ForeignKey,
   Index,
+  Getter,
   ColumnFunctionDefault,
   ColumnLiteralDefault,
+  Trigger,
+  TriggerTiming,
+  Module,
   TableI,
   ColumnI,
   ForeignKeyI,
   IndexI,
   TriggerI,
   ColumnDefaultI,
+  TableExtensionI,
+  TraitI,
+  GetterI,
+  GetterVolatilityI,
+  PgLanguageOptionsI,
+  TraitImplementationI,
+  TraitRequirementI,
+  ModuleI,
 };

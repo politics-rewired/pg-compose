@@ -2,18 +2,51 @@
 
 ## Progress
 
+To Do Order:
+
+- [ ] Triggers
+- [ ] Foreign keys
+- [ ] Simple column substitution for triggers - don't worry about getter
+      replacement
+- [ ] Job - after hook + secrets
+- [ ] Cron job
+- [ ] Something for secrets (symmetric encryption) - pg-compose worker wrapper
+      knows the secret refs
+
+For trait substitution, we need the whole context of what tables exist and what
+traits they implement.
+
+When a trait has a trigger, that trigger needs to be created for each table
+which implements that trait, and that needs to be delegated somehow (maybe based
+on TG_TABLE_NAME?)
+
+When a trait has a getter, that function needs to just be copied over. But what
+if it references another table? Traits need to be able to reference traits like
+tables can reference tables, and require tables which implement a trait.
+
+We can only check trait satisfaction guarantees on the whole object context.
+
 - [x] Columns
 - [x] Indexes
+- [ ] Getters
+- [ ] Check constraints
+- [ ] Unique constraints
 - [ ] Foreign keys
 - [ ] Table dropping
 - [ ] Functions
 - [ ] Triggers
-- [ ] Extension
-  - [ ] rename
+- [ ] Extension - this is simply adding the properties
+  - [ ] add column
+  - [ ] add index
   - [ ] add trigger
   - [ ] add constraint
-- [ ] Traits
-- [ ] Functions that take traits (generics)
+  - [ ] rename
+- [ ] Traits - this is adding the defaults, checking the requirements, doing the
+      substitutions (things in triggers can use mustache for full
+      {table.column})
+  - [x] Checking requirements
+  - [ ] Templating the extension (getters, mostly)
+- [ ] Functions that take traits (generics) - these can use mustache as well
 
 ## Goals
 
@@ -36,7 +69,7 @@ triggers:
       body: >
         insert into charges (amount) values
         (get_charge_amount_for({implementor}))
-required_methods:
+required_getters:
   get_charge_amount_for:
     # parameters:
     returns: numeric
@@ -46,7 +79,7 @@ required_methods:
 kind: Trait
 name: causes_slack_notification
 triggers: ---
-required_methods:
+required_getters:
   should_notify:
     returns: boolean
   get_notification_text:
@@ -57,7 +90,7 @@ required_methods:
 kind: Table
 name: message
 implements: billable_unit
-methods:
+getters:
   get_charge_amount_for: >
     select '.01'
 columns: ...
@@ -365,7 +398,7 @@ add_triggers:
 name: van_script_questions
 implements: spoke_external_question
 columns: ...
-methods:
+getters:
   get_question:
     language: sql
     body: >

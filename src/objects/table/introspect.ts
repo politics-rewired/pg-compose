@@ -1,6 +1,14 @@
 import { PoolClient } from "pg";
 import { PgIdentifierI, RunContextI } from "../core";
-import { TableI, ColumnI, IndexI } from "./records";
+import {
+  TableI,
+  ColumnI,
+  IndexI,
+  GetterI,
+  TriggerI,
+  TriggerTiming,
+} from "./records";
+import { groupBy, sortBy } from "lodash";
 
 interface PgAttribute {
   attname: string;
@@ -136,21 +144,158 @@ const introspectIndexes = async (
   }));
 };
 
+interface PgProc {
+  name: string;
+  body: string;
+  volatility: string;
+  language: "sql" | "plpgsql";
+  return_type: string;
+}
+
+const introspectGetters = async (
+  client: PoolClient,
+  tableIdentifier: PgIdentifierI,
+  context: RunContextI,
+): Promise<GetterI[]> => {
+  const results = await client.query(
+    `
+      SELECT 
+        func.proname as name,
+        func.prosrc as body,
+        func.provolatile as volatility,
+        lang.lanname as language,
+        return_type.typname as return_type
+      FROM pg_proc as func
+      JOIN pg_type as return_type
+        ON return_type.oid = func.prorettype
+      JOIN pg_type as input_type
+        ON input_type.oid = ANY(proargtypes)
+      JOIN pg_class as tab
+        ON input_type.oid = tab.reltype
+      JOIN pg_language as lang
+        ON lang.oid = func.prolang
+      WHERE func.prokind = 'f'
+        AND func.pronargs = 1
+        AND func.provolatile = ANY(ARRAY['i', 's'])
+        AND tab.relnamespace = to_regnamespace($1)::oid
+        AND tab.relname = $2
+    `,
+    [context.schema, tableIdentifier],
+  );
+
+  const procs: PgProc[] = results.rows;
+
+  return procs.map(p => {
+    const v = p.volatility === "i" ? "immutable" : "stable";
+
+    return {
+      language: p.language,
+      name: p.name,
+      body: p.body,
+      volatility: v,
+      returns: p.return_type,
+    };
+  });
+};
+
+interface PgTrigger {
+  trigger_name: string;
+  body: string;
+  language: "plpgsql";
+  when_cond: string;
+  cond_event: string;
+  func_name: string;
+}
+
+const parseTriggerName = (actualName: string, tableName: string): string =>
+  actualName.replace(/^_[0-9]+_/, "").replace(new RegExp(`^${tableName}_`), "");
+
+export const introspectTriggers = async (
+  client: PoolClient,
+  tableIdentifier: PgIdentifierI,
+  context: RunContextI,
+): Promise<TriggerI[]> => {
+  const result = await client.query(
+    `
+      SELECT 
+        trig.tgname as trigger_name,
+        func.proname as func_name,
+        func.prosrc as body,
+        lang.lanname as language,
+
+        case 
+          when trig.tgqual is null then null
+          else pg_get_expr(trig.tgqual, tab.oid, true)
+        end as when_cond,
+
+        COALESCE(
+          CASE WHEN (tgtype::int::bit(7) & b'0000010')::int = 0 THEN NULL ELSE 'before' END,
+          CASE WHEN (tgtype::int::bit(7) & b'0000010')::int = 0 THEN 'after' ELSE NULL END,
+          CASE WHEN (tgtype::int::bit(7) & b'1000000')::int = 0 THEN NULL ELSE 'instead_of' END,
+          ''
+        )::text
+        ||
+        (CASE WHEN (tgtype::int::bit(7) & b'0000100')::int = 0 THEN '' ELSE '_insert' END) ||
+        (CASE WHEN (tgtype::int::bit(7) & b'0001000')::int = 0 THEN '' ELSE '_delete' END) ||
+        (CASE WHEN (tgtype::int::bit(7) & b'0010000')::int = 0 THEN '' ELSE '_update' END) as cond_event
+      FROM pg_trigger as trig
+      JOIN pg_class as tab
+        on tab.oid = trig.tgrelid
+      JOIN pg_proc as func
+        on func.oid = trig.tgfoid
+      JOIN pg_language as lang
+        ON lang.oid = func.prolang
+      WHERE tab.relnamespace = to_regnamespace($1)::oid
+        AND tab.relname = $2
+    `,
+    [context.schema, tableIdentifier],
+  );
+
+  const pgTriggers: PgTrigger[] = result.rows;
+  const triggers: TriggerI[] = [];
+
+  const groupedByEvent = groupBy(pgTriggers, t => t.cond_event);
+
+  for (const event of Object.keys(groupedByEvent)) {
+    if (TriggerTiming.guard(event)) {
+      const sortedByName = sortBy(groupedByEvent[event], t => t.trigger_name);
+
+      sortedByName.forEach((trig, idx) => {
+        triggers.push({
+          name: parseTriggerName(trig.trigger_name, tableIdentifier), // trigger names don't include their order prefix
+          for_each: "row",
+          timing: event,
+          order: idx + 1,
+          body: trig.body,
+          function: trig.func_name,
+          language: trig.language,
+        });
+      });
+    }
+  }
+
+  return triggers;
+};
+
 export const introspectTable = async (
   client: PoolClient,
-  identifier: PgIdentifierI,
+  name: PgIdentifierI,
   context: RunContextI,
 ): Promise<TableI> => {
-  const [columns, indexes] = await Promise.all([
-    introspectColumns(client, identifier, context),
-    introspectIndexes(client, identifier, context),
+  const [columns, indexes, getters, triggers] = await Promise.all([
+    introspectColumns(client, name, context),
+    introspectIndexes(client, name, context),
+    introspectGetters(client, name, context),
+    introspectTriggers(client, name, context),
   ]);
 
   const table: TableI = {
     kind: "Table",
-    name: identifier,
-    columns: columns,
-    indexes: indexes,
+    name,
+    columns,
+    indexes,
+    getters,
+    triggers,
   };
 
   return table;

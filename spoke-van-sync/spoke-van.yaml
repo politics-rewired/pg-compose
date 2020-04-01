@@ -1,0 +1,52 @@
+kind: Table
+name: van_system_instance
+implements:
+  - trait: external_system
+operations:
+  - name: queue_refresh_external_questions
+    body: |
+      select graphile_worker.add_job(payload)
+---
+kind: TableExtension
+extends: van_question
+implements:
+  - trait: spoke_external_question
+# columns:
+---
+kind: Table
+name: van_question_response_option
+implements:
+  - trait: external_question_response_option
+    via:
+      columns:
+        external_question_id: van_question_id
+---
+kind: Table
+name: van_question_response
+implements:
+  - trait: external_question_response
+---
+kind: TableExtension
+extends: external_question_response
+add_triggers:
+  - after_insert:
+      - language: plpgsql
+        volatility: volatile
+        when: system_type = 'van'
+        body: |
+          insert into van_question_response (...)
+          values (NEW.....);
+          return NEW;
+---
+kind: CronJob
+name: scheduled_fetch_van_questions
+external: fetch_van_questions
+schedule: 5/* * * * *
+---
+kind: Job
+name: imperative_fetch_van_questions
+external: fetch_van_questions
+empty: true
+after: |
+  insert into van_questions result->>
+  ...

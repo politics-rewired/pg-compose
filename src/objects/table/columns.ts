@@ -164,7 +164,7 @@ const matchFn = (desiredTable: TableI) =>
 export const makeReconcileColumns = (desiredTable: TableI) => (
   desired: ColumnI | undefined,
   current: ColumnI | undefined,
-) => {
+): ColumnOperationType[] => {
   const input = [desired, current];
 
   if (ReconcileColumnsInput.guard(input)) {

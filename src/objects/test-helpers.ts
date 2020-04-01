@@ -50,7 +50,6 @@ export const checkIdempotencyAfterTransitions = async <
     const statements = operationList.map(o => object.toStatement(context)(o));
 
     for (const statement of statements) {
-      console.log("statement", statement);
       await client.query(statement);
     }
 

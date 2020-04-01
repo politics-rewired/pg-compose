@@ -1,0 +1,156 @@
+---
+kind: Table
+name: external_system
+columns:
+  - name: id
+    type: serial
+    nullable: false
+  - name: system_type # van, pdi, actionnetwork
+    type: text
+    nullable: false
+  - name: name # John Smith's VAN
+    type: text
+    nullable: false
+---
+kind: Table
+name: external_question
+columns:
+  - name: id
+    type: serial
+    nullable: false
+  - name: external_id
+    type: text
+    nullable: false
+  - name: system_id
+    type: integer
+  - name: question
+    type: text
+foreign_keys:
+  - on: system_id
+    references: external_system (id)
+---
+kind: Table
+name: external_question_response_option
+columns:
+  - name: id
+    type: serial
+    nullable: false
+  - name: external_question_id
+    type: text
+    nullable: false
+  - name: response_option
+    type: text
+    nullable: false
+  - name: external_id
+    type: text
+    nullable: false
+foreign_keys:
+  - on: external_question_id
+    references: external_question (id)
+---
+kind: Table
+name: interaction_step_external_response
+columns:
+  - name: response_interaction_step_id
+    type: integer
+    nullable: false
+  - name: external_question_response_option_id
+    type: integer
+    nullable: false
+foreign_keys:
+  - on: response_interaction_step_id
+    references: interaction_step (id)
+  - on: external_question_response_option_id
+    references: external_question_response_option (id)
+---
+kind: Table
+name: external_question_response
+columns:
+  - name: external_question_response_id
+    type: id
+    nullable: false
+  - name: external_contact_id
+    type: text
+    nullable: false
+  - name: response
+    type: text
+    nullable: false
+  - name: sync_status
+    type: text
+    nullable: false
+  - name: system_type_name
+    type: text
+    nullable: false
+triggers:
+  before_insert:
+    -
+---
+kind: Trait
+name: external_question
+requires:
+  - columns:
+      - name: id
+        type: text
+      - name: system_id
+        type: integer
+provides:
+  triggers:
+    after_insert:
+      - language: plpgsql
+        name: insert_into_external_question
+        volalitility: volatile
+        body: |
+          insert into external_question (id, system_id)
+          values (NEW.{{ id }}, NEW.{{ system_id }});
+          return NEW;
+    after_delete:
+      - language: plpgsql
+        name: delete_from_external_question
+        volalitility: volatile
+        body: |
+          delete from external_question
+          where id = OLD.{{ id }};
+          return OLD;
+    after_update:
+      - language: plpgsql
+        name: update_external_question
+        volalitility: volatile
+        body: |
+          update external_question
+          ...;
+---
+kind: Trait
+name: external_question_response_option
+requires:
+  - name: external_question_id
+    type: text
+    nullable: false
+  - name: response_option
+    type: text
+    nullable: false
+add_triggers:
+  after_insert:
+    - language: plpgsql
+      name: insert_into_external_question
+      volalitility: volatile
+      body: |
+        insert into external_question_response_option (external_question_id, response_option)
+        values (NEW.{{ external_question_id }}, NEW.{{ response_option }});
+        return NEW;
+  after_delete:
+    - language: plpgsql
+      name: delete_from_external_question
+      volalitility: volatile
+      body: |
+        delete from external_question
+        where external_question_id = OLD.{{ external_question_id }};
+          and response_option = OLD.response_option
+
+        return OLD;
+---
+kind: Trait
+name: external_system
+requires:
+  operations:
+    - name: queue_refresh_external_questions
+      returns: void
