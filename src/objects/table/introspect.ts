@@ -7,6 +7,7 @@ import {
   GetterI,
   TriggerI,
   TriggerTiming,
+  ForeignKeyI,
 } from "./records";
 import { groupBy, sortBy } from "lodash";
 
@@ -277,16 +278,69 @@ export const introspectTriggers = async (
   return triggers;
 };
 
+interface PgFk {
+  constraint_name: string;
+  referenced_table_name: string;
+  constrained_column_names: string[];
+  referenced_column_names: string[];
+}
+
+export const introspectForeignKeys = async (
+  client: PoolClient,
+  tableIdentifier: PgIdentifierI,
+  context: RunContextI,
+): Promise<ForeignKeyI[]> => {
+  const result = await client.query(
+    `
+      SELECT
+        fk.conname as constraint_name,
+        referenced_tab.relname as referenced_table_name,
+        json_agg(constrained_columns.attname) as constrained_column_names,
+        json_agg(referenced_columns.attname) as referenced_column_names
+      FROM pg_constraint as fk
+      JOIN pg_class as tab
+        ON fk.conrelid = tab.oid
+      JOIN pg_class as referenced_tab
+        ON fk.confrelid = referenced_tab.oid
+      JOIN pg_attribute as constrained_columns
+        ON constrained_columns.attrelid = tab.oid
+        AND constrained_columns.attnum = ANY(fk.conkey)
+      JOIN pg_attribute as referenced_columns
+        ON referenced_columns.attrelid = referenced_tab.oid
+        AND referenced_columns.attnum = ANY(fk.confkey)
+      WHERE fk.contype = 'f'
+        AND tab.relnamespace = to_regnamespace($1)::oid
+        AND tab.relname = $2
+      GROUP BY 1, 2
+    `,
+    [context.schema, tableIdentifier],
+  );
+
+  const rows: PgFk[] = result.rows;
+
+  const fks: ForeignKeyI[] = rows.map(fk => ({
+    name: fk.constraint_name,
+    on: fk.constrained_column_names,
+    references: {
+      table: fk.referenced_table_name,
+      columns: fk.referenced_column_names,
+    },
+  }));
+
+  return fks;
+};
+
 export const introspectTable = async (
   client: PoolClient,
   name: PgIdentifierI,
   context: RunContextI,
 ): Promise<TableI> => {
-  const [columns, indexes, getters, triggers] = await Promise.all([
+  const [columns, indexes, getters, triggers, foreignKeys] = await Promise.all([
     introspectColumns(client, name, context),
     introspectIndexes(client, name, context),
     introspectGetters(client, name, context),
     introspectTriggers(client, name, context),
+    introspectForeignKeys(client, name, context),
   ]);
 
   const table: TableI = {
@@ -296,6 +350,7 @@ export const introspectTable = async (
     indexes,
     getters,
     triggers,
+    foreignKeys,
   };
 
   return table;

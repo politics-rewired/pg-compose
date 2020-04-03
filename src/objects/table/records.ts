@@ -57,15 +57,16 @@ const Column = Record({
   );
 
 const ForeignKey = Record({
-  name: PgIdentifier,
   on: Array(PgIdentifier),
-  references: Array(
-    Record({
-      table: PgIdentifier,
-      column: PgIdentifier,
-    }),
-  ),
-});
+  references: Record({
+    table: PgIdentifier,
+    columns: Array(PgIdentifier),
+  }),
+}).And(
+  Partial({
+    name: PgIdentifier,
+  }),
+);
 
 const CheckConstraint = Record({
   name: PgIdentifier,

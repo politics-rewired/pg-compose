@@ -26,6 +26,39 @@ export const checkIdempotency = async <ObjectType, OperationType>(
   return object.reconcile(desired, current);
 };
 
+export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
+  object: PgObject<ObjectType, OperationType>,
+  before: ObjectType,
+  toTest: ObjectType,
+  identifier: PgIdentifierI,
+): Promise<OperationType[]> => {
+  const client = await pool.connect();
+  await client.query("begin");
+
+  const context: RunContextI = { schema: "public" };
+
+  const beforeOperationList = object.reconcile(before, undefined);
+  const beforeStatements = beforeOperationList.map(o =>
+    object.toStatement(context)(o),
+  );
+
+  for (const statement of beforeStatements) {
+    await client.query(statement);
+  }
+
+  const operationList = object.reconcile(toTest, undefined);
+  const statements = operationList.map(o => object.toStatement(context)(o));
+
+  for (const statement of statements) {
+    await client.query(statement);
+  }
+
+  const current = await object.introspect(client, identifier, context);
+
+  await client.query("rollback");
+  return object.reconcile(toTest, current);
+};
+
 export const checkIdempotencyAfterTransitions = async <
   ObjectType,
   OperationType

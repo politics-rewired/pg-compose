@@ -35,6 +35,8 @@ interface NameableObject {
   previous_name?: string;
 }
 
+type IdentityFunction<T> = (desired: T, current: T) => boolean;
+
 export const createOperationsForNameableObject = <ObjectType, OperationType>(
   desiredObjects: (NameableObject & ObjectType)[] | undefined,
   currentObjects: (NameableObject & ObjectType)[] | undefined,
@@ -43,15 +45,40 @@ export const createOperationsForNameableObject = <ObjectType, OperationType>(
     current: ObjectType | undefined,
   ) => OperationType[],
 ): OperationType[] => {
+  const identityByName: IdentityFunction<ObjectType> = <ObjectType>(
+    desired: NameableObject & ObjectType,
+    current: NameableObject & ObjectType,
+  ) => desired.name === current.name || desired.previous_name === current.name;
+
+  return createOperationsForObjectWithIdentityFunction(
+    desiredObjects,
+    currentObjects,
+    reconcileFn,
+    identityByName,
+  );
+};
+
+export const createOperationsForObjectWithIdentityFunction = <
+  ObjectType,
+  OperationType
+>(
+  desiredObjects: ObjectType[] | undefined,
+  currentObjects: ObjectType[] | undefined,
+  reconcileFn: (
+    desired: ObjectType | undefined,
+    current: ObjectType | undefined,
+  ) => OperationType[],
+  identityFunction: IdentityFunction<ObjectType>,
+): OperationType[] => {
   const dObjects = desiredObjects || [];
   const cObjects = currentObjects || [];
 
   // Accumulate create or alter operations
   const createOrAlterOperations: OperationType[] = dObjects.reduce(
     (acc: OperationType[], desired) => {
-      const current =
-        cObjects.find(current => current.name === desired.name) ||
-        cObjects.find(current => current.name === desired.previous_name);
+      const current = cObjects.find(current =>
+        identityFunction(desired, current),
+      );
 
       return acc.concat(reconcileFn(desired, current));
     },
@@ -60,9 +87,9 @@ export const createOperationsForNameableObject = <ObjectType, OperationType>(
 
   const dropOperations: OperationType[] = cObjects.reduce(
     (acc: OperationType[], current) => {
-      const desired =
-        dObjects.find(desired => desired.name === current.name) ||
-        dObjects.find(desired => desired.previous_name === current.name);
+      const desired = dObjects.find(desired =>
+        identityFunction(desired, current),
+      );
 
       return acc.concat(
         desired === undefined ? reconcileFn(undefined, current) : [],

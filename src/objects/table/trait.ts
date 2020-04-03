@@ -1,12 +1,5 @@
-import {
-  TraitI,
-  TableI,
-  TableExtensionI,
-  Index,
-  TraitRequirementI,
-} from "./records";
-import { String, match, Array } from "runtypes";
-import { PgIdentifierI } from "../core";
+import { TraitI, TableI } from "./records";
+import { String } from "runtypes";
 
 export const enforceTrait = (trait: TraitI, table: TableI): true | string[] => {
   const errors = [];

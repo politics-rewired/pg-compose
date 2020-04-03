@@ -21,6 +21,11 @@ import {
   ReorderTriggerOperation,
 } from "./triggers";
 import {
+  ForeignKeyOperation,
+  CreateForeignKeyOperation,
+  DropForeignKeyOperation,
+} from "./foreignKeys";
+import {
   CreateTableOperation,
   RenameTableOperation,
   TableOperation,
@@ -244,12 +249,38 @@ export const makeTriggerToStatement = (context: RunContextI) =>
     ],
   );
 
+export const makeForeignKeyToStatement = (context: RunContextI) =>
+  match(
+    [
+      CreateForeignKeyOperation,
+      op =>
+        `ALTER TABLE ${makeTableIdentifier(
+          context.schema,
+          op.table.name,
+        )} ADD FOREIGN KEY (${op.foreignKey.on.join(
+          ", ",
+        )}) REFERENCES ${makeTableIdentifier(
+          context.schema,
+          op.foreignKey.references.table,
+        )} (${op.foreignKey.references.columns.join(", ")});`,
+    ],
+    [
+      DropForeignKeyOperation,
+      op =>
+        `ALTER TABLE ${makeTableIdentifier(
+          context.schema,
+          op.table.name,
+        )} DROP CONSTRAINT ${op.foreignKey.name};`,
+    ],
+  );
+
 export const makeToStatement = (context: RunContextI) =>
   match(
     [TableOperation, makeTableToStatement(context)],
     [ColumnOperation, makeColumnToStatement(context)],
     [IndexOperation, makeIndexToStatement(context)],
     [TriggerOperation, makeTriggerToStatement(context)],
+    [ForeignKeyOperation, makeForeignKeyToStatement(context)],
     [
       Unknown,
       op => {

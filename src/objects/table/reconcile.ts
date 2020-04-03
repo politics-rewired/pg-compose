@@ -1,9 +1,24 @@
 import { Record, Literal, Static, Union } from "runtypes";
-import { ColumnI, TableI, Table, IndexI, TriggerI } from "./records";
+import {
+  ColumnI,
+  TableI,
+  Table,
+  IndexI,
+  TriggerI,
+  ForeignKeyI,
+} from "./records";
 import { ColumnOperationType, makeReconcileColumns } from "./columns";
-import { createOperationsForNameableObject } from "../core";
+import {
+  createOperationsForNameableObject,
+  createOperationsForObjectWithIdentityFunction,
+} from "../core";
 import { IndexOperationType, makeReconcileIndexes } from "./tableIndex";
 import { TriggerOperationType, makeReconcileTriggers } from "./triggers";
+import {
+  ForeignKeyOperationType,
+  makeReconcileForeignKeys,
+} from "./foreignKeys";
+import { isEqual, sortBy } from "lodash";
 
 /**
  * -------------------- Tables --------------------
@@ -32,7 +47,8 @@ export type TableOperationType =
   | Static<typeof TableOperation>
   | ColumnOperationType
   | IndexOperationType
-  | TriggerOperationType;
+  | TriggerOperationType
+  | ForeignKeyOperationType;
 
 export const reconcileTables = (
   desired: TableI,
@@ -86,9 +102,30 @@ export const reconcileTables = (
   );
 
   // Accumulate foreign key reconciliations
+  const fkIdentityFn = (desiredFk: ForeignKeyI, currentFk: ForeignKeyI) =>
+    isEqual(
+      sortBy(desiredFk.on, c => c),
+      sortBy(currentFk.on, c => c),
+    ) &&
+    desiredFk.references.table === currentFk.references.table &&
+    isEqual(
+      sortBy(desiredFk.references.columns, c => c),
+      sortBy(currentFk.references.columns, c => c),
+    );
+
+  const foreignKeyOperations = createOperationsForObjectWithIdentityFunction<
+    ForeignKeyI,
+    ForeignKeyOperationType
+  >(
+    desired.foreignKeys,
+    current === undefined ? [] : current?.foreignKeys,
+    makeReconcileForeignKeys(desired),
+    fkIdentityFn,
+  );
 
   return operations
     .concat(columnOperations)
     .concat(indexOperations)
-    .concat(triggerOperations);
+    .concat(triggerOperations)
+    .concat(foreignKeyOperations);
 };
