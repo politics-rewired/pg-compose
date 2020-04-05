@@ -1,12 +1,11 @@
-import { TableObject } from "./index";
+import { TableProvider } from "./index";
 import { checkIdempotency } from "../test-helpers";
 
 describe("after migration, the operation list should be empty", () => {
   test("basic table", async () => {
     const newOperationList = await checkIdempotency(
-      TableObject,
+      TableProvider,
       {
-        kind: "Table",
         name: "people",
         columns: [
           {
@@ -27,9 +26,8 @@ describe("after migration, the operation list should be empty", () => {
 
   test("table with default and not nullable columns", async () => {
     const newOperationList = await checkIdempotency(
-      TableObject,
+      TableProvider,
       {
-        kind: "Table",
         name: "people",
         columns: [
           {
@@ -52,9 +50,8 @@ describe("after migration, the operation list should be empty", () => {
 
   test("table with primary keys", async () => {
     const newOperationList = await checkIdempotency(
-      TableObject,
+      TableProvider,
       {
-        kind: "Table",
         name: "people",
         columns: [
           {

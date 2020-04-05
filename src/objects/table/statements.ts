@@ -31,7 +31,8 @@ import {
   TableOperation,
 } from "./reconcile";
 import { match, Unknown } from "runtypes";
-import { RunContextI, PgIdentifierI } from "../core";
+import { PgIdentifierI } from "../core";
+import { RunContextI } from "../../runners";
 import {
   ColumnDefaultI,
   ColumnFunctionDefault,

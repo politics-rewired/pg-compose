@@ -2,12 +2,12 @@ import {
   checkIdempotency,
   checkIdempotencyAfterTransitions,
 } from "../test-helpers";
-import { TableObject } from "./index";
+import { TableProvider } from "./index";
 
 describe("table index idempotency", () => {
   test("basic index", async () => {
     const newOperationList = await checkIdempotency(
-      TableObject,
+      TableProvider,
       {
         kind: "Table",
         name: "people",
@@ -21,7 +21,7 @@ describe("table index idempotency", () => {
 
   test("create primary key", async () => {
     const newOperationList = await checkIdempotency(
-      TableObject,
+      TableProvider,
       {
         kind: "Table",
         name: "people",
@@ -49,7 +49,7 @@ describe("table index idempotency", () => {
 
   test("create primary key with include", async () => {
     const newOperationList = await checkIdempotency(
-      TableObject,
+      TableProvider,
       {
         kind: "Table",
         name: "people",
@@ -82,7 +82,7 @@ describe("table index idempotency", () => {
 
   test("partial unique with include", async () => {
     const newOperationList = await checkIdempotency(
-      TableObject,
+      TableProvider,
       {
         kind: "Table",
         name: "people",
@@ -121,7 +121,7 @@ describe("table index idempotency", () => {
 describe("table index idempotency after transitions", () => {
   test("can rename index", async () => {
     const newOperationList = await checkIdempotencyAfterTransitions(
-      TableObject,
+      TableProvider,
       [
         {
           kind: "Table",
@@ -149,7 +149,7 @@ describe("table index idempotency after transitions", () => {
 
   test("can make an index a primary key", async () => {
     const newOperationList = await checkIdempotencyAfterTransitions(
-      TableObject,
+      TableProvider,
       [
         {
           kind: "Table",

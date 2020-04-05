@@ -1,10 +1,9 @@
 import { checkIdempotencyOnSecondTable } from "../test-helpers";
-import { TableObject } from "./index";
+import { TableProvider } from "./index";
 import { TableI } from "./records";
 
 describe("foreign key idempotency", () => {
   const basicEventTable: TableI = {
-    kind: "Table",
     name: "events",
     columns: [
       {
@@ -38,10 +37,9 @@ describe("foreign key idempotency", () => {
 
   test("basic", async () => {
     const newOperationList = await checkIdempotencyOnSecondTable(
-      TableObject,
+      TableProvider,
       basicEventTable,
       {
-        kind: "Table",
         name: "people",
         columns: [
           { name: "first_name", type: "text" },
@@ -101,7 +99,7 @@ describe("foreign key idempotency", () => {
 
   // test("compound foreign keys", async () => {
   //   const newOperationList = await checkIdempotencyOnSecondTable(
-  //     TableObject,
+  //     TableProvider,
   //     tenantEventTable,
   //     {
   //       kind: "Table",

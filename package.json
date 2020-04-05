@@ -44,6 +44,7 @@
     "@types/yaml": "^1.2.0",
     "chokidar": "^3.3.1",
     "cosmiconfig": "^6.0.0",
+    "glob": "^7.1.6",
     "lodash": "^4.17.15",
     "mustache": "^4.0.1",
     "pg": "^7.18.2",
@@ -54,6 +55,7 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.2",
+    "@types/glob": "^7.1.1",
     "@types/jest": "^25.1.1",
     "@types/mustache": "^4.0.1",
     "@types/pg": "^7.14.3",

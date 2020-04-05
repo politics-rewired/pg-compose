@@ -2,11 +2,10 @@ import {
   checkIdempotency,
   checkIdempotencyAfterTransitions,
 } from "../test-helpers";
-import { TableObject } from "./index";
+import { TableProvider } from "./index";
 import { TriggerI, TableI } from "./records";
 
 const makeCoreTestingTable = (triggers: TriggerI[]): TableI => ({
-  kind: "Table" as "Table",
   name: "people",
   columns: [
     {
@@ -28,7 +27,7 @@ const makeCoreTestingTable = (triggers: TriggerI[]): TableI => ({
 describe("idempotency", () => {
   test("basic before insert trigger", async () => {
     const newOperationList = await checkIdempotency(
-      TableObject,
+      TableProvider,
       makeCoreTestingTable([
         {
           name: "make_full_name",
@@ -47,7 +46,7 @@ describe("idempotency", () => {
 
   test("two before insert triggers", async () => {
     const newOperationList = await checkIdempotency(
-      TableObject,
+      TableProvider,
       makeCoreTestingTable([
         {
           name: "make_full_name",
@@ -76,7 +75,7 @@ describe("idempotency", () => {
 describe("idempotency with changes", () => {
   test("changing trigger body", async () => {
     const newOperationList = await checkIdempotencyAfterTransitions(
-      TableObject,
+      TableProvider,
       [
         makeCoreTestingTable([
           {
@@ -107,7 +106,7 @@ describe("idempotency with changes", () => {
 
   test("reordering triggers", async () => {
     const newOperationList = await checkIdempotencyAfterTransitions(
-      TableObject,
+      TableProvider,
       [
         makeCoreTestingTable([
           {

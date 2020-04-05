@@ -1,5 +1,5 @@
 import { PoolClient } from "pg";
-import { PgIdentifierI, RunContextI } from "../core";
+import { PgIdentifierI } from "../core";
 import {
   TableI,
   ColumnI,
@@ -10,6 +10,7 @@ import {
   ForeignKeyI,
 } from "./records";
 import { groupBy, sortBy } from "lodash";
+import { RunContextI } from "../../runners";
 
 interface PgAttribute {
   attname: string;
@@ -344,7 +345,6 @@ export const introspectTable = async (
   ]);
 
   const table: TableI = {
-    kind: "Table",
     name,
     columns,
     indexes,

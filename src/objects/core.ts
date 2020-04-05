@@ -1,5 +1,6 @@
-import { String, Runtype, Static, Record } from "runtypes";
+import { String, Runtype, Static } from "runtypes";
 import { PoolClient } from "pg";
+import { RunContextI } from "../runners";
 
 export const PgIdentifier = String.withConstraint(
   s => s.match(/[^a-z0-9_]/) === null,
@@ -10,13 +11,7 @@ export const PgIdentifier = String.withConstraint(
 
 export type PgIdentifierI = Static<typeof PgIdentifier>;
 
-export const RunContext = Record({
-  schema: PgIdentifier,
-});
-
-export interface RunContextI extends Static<typeof RunContext> {}
-
-export interface PgObject<ObjectType, OperationType> {
+export interface ObjectProvider<ObjectType, OperationType> {
   record: Runtype<ObjectType>;
   introspect: (
     client: PoolClient,
@@ -44,6 +39,7 @@ export const createOperationsForNameableObject = <ObjectType, OperationType>(
     desired: ObjectType | undefined,
     current: ObjectType | undefined,
   ) => OperationType[],
+  opts?: CreateOperationsOpts | undefined,
 ): OperationType[] => {
   const identityByName: IdentityFunction<ObjectType> = <ObjectType>(
     desired: NameableObject & ObjectType,
@@ -55,8 +51,13 @@ export const createOperationsForNameableObject = <ObjectType, OperationType>(
     currentObjects,
     reconcileFn,
     identityByName,
+    opts,
   );
 };
+
+interface CreateOperationsOpts {
+  dropObjects: boolean;
+}
 
 export const createOperationsForObjectWithIdentityFunction = <
   ObjectType,
@@ -69,6 +70,9 @@ export const createOperationsForObjectWithIdentityFunction = <
     current: ObjectType | undefined,
   ) => OperationType[],
   identityFunction: IdentityFunction<ObjectType>,
+  opts: CreateOperationsOpts | undefined = {
+    dropObjects: true,
+  },
 ): OperationType[] => {
   const dObjects = desiredObjects || [];
   const cObjects = currentObjects || [];
@@ -84,6 +88,10 @@ export const createOperationsForObjectWithIdentityFunction = <
     },
     [],
   );
+
+  if (opts.dropObjects === false) {
+    return createOrAlterOperations;
+  }
 
   const dropOperations: OperationType[] = cObjects.reduce(
     (acc: OperationType[], current) => {

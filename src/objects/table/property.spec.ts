@@ -1,7 +1,7 @@
 import { checkIdempotency } from "../test-helpers";
 import fc from "fast-check";
 import { TableI, Column } from "./records";
-import { TableObject } from "./index";
+import { TableProvider } from "./index";
 import { PgIdentifier } from "../core";
 
 const PgIdentifierArbitrary = fc
@@ -42,7 +42,7 @@ describe("table property tests", () => {
     await fc.assert(
       fc.asyncProperty(TableArbitary, async table => {
         const newOperationList = await checkIdempotency(
-          TableObject,
+          TableProvider,
           table as TableI,
           table.name,
         );

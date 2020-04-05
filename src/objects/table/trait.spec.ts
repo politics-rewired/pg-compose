@@ -3,7 +3,6 @@ import { TraitI } from "./records";
 
 describe("trait enforcement - column", () => {
   const hasFirstNameTrait: TraitI = {
-    kind: "Trait",
     name: "nameable",
     requires: {
       columns: [{ name: "given_name", type: "text" }],
@@ -11,7 +10,6 @@ describe("trait enforcement - column", () => {
   };
 
   const hasNotNullFirstNameTrait: TraitI = {
-    kind: "Trait",
     name: "nameable",
     requires: {
       columns: [{ name: "given_name", type: "text", nullable: false }],
@@ -20,7 +18,6 @@ describe("trait enforcement - column", () => {
 
   test("basic - passes", () => {
     const successOrErrors = enforceTrait(hasFirstNameTrait, {
-      kind: "Table",
       name: "people",
       implements: [{ trait: "nameable" }],
       columns: [{ name: "given_name", type: "text" }],
@@ -31,7 +28,6 @@ describe("trait enforcement - column", () => {
 
   test("basic - fails", () => {
     const successOrErrors = enforceTrait(hasFirstNameTrait, {
-      kind: "Table",
       name: "people",
       implements: [{ trait: "nameable" }],
       columns: [{ name: "first_name", type: "text" }],
@@ -43,7 +39,6 @@ describe("trait enforcement - column", () => {
 
   test("passes with via", () => {
     const successOrErrors = enforceTrait(hasFirstNameTrait, {
-      kind: "Table",
       name: "people",
       implements: [
         { trait: "nameable", via: { columns: { given_name: "first_name" } } },
@@ -56,7 +51,6 @@ describe("trait enforcement - column", () => {
 
   test("fails with bad alias", () => {
     const successOrErrors = enforceTrait(hasFirstNameTrait, {
-      kind: "Table",
       name: "people",
       implements: [
         { trait: "nameable", via: { columns: { given_name: "first_name" } } },
@@ -70,7 +64,6 @@ describe("trait enforcement - column", () => {
 
   test("fails with type mismatch", () => {
     const successOrErrors = enforceTrait(hasFirstNameTrait, {
-      kind: "Table",
       name: "people",
       implements: [{ trait: "nameable" }],
       columns: [{ name: "given_name", type: "integer" }],
@@ -82,7 +75,6 @@ describe("trait enforcement - column", () => {
 
   test("not nullable - fails with nullable mismatch", () => {
     const successOrErrors = enforceTrait(hasNotNullFirstNameTrait, {
-      kind: "Table",
       name: "people",
       implements: [{ trait: "nameable" }],
       columns: [{ name: "given_name", type: "text" }],
@@ -94,7 +86,6 @@ describe("trait enforcement - column", () => {
 
   test("passes with not-nullable", () => {
     const successOrErrors = enforceTrait(hasNotNullFirstNameTrait, {
-      kind: "Table",
       name: "people",
       implements: [{ trait: "nameable" }],
       columns: [{ name: "given_name", type: "text", nullable: false }],
@@ -105,7 +96,6 @@ describe("trait enforcement - column", () => {
 
   test("passes with getter", () => {
     const successOrErrors = enforceTrait(hasFirstNameTrait, {
-      kind: "Table",
       name: "people",
       implements: [
         {
@@ -132,7 +122,6 @@ describe("trait enforcement - column", () => {
 
   test("fails with getter type mismatch", () => {
     const successOrErrors = enforceTrait(hasFirstNameTrait, {
-      kind: "Table",
       name: "people",
       implements: [
         {
@@ -161,7 +150,6 @@ describe("trait enforcement - column", () => {
 
 describe("trait enforcement - getter", () => {
   const hasFirstNameGetterTrait: TraitI = {
-    kind: "Trait",
     name: "nameable",
     requires: {
       getters: [
@@ -175,7 +163,6 @@ describe("trait enforcement - getter", () => {
 
   test("basic getter - passes", () => {
     const successOrErrors = enforceTrait(hasFirstNameGetterTrait, {
-      kind: "Table",
       name: "people",
       implements: [
         {
@@ -199,7 +186,6 @@ describe("trait enforcement - getter", () => {
 
   test("basic getter - fails because missing", () => {
     const successOrErrors = enforceTrait(hasFirstNameGetterTrait, {
-      kind: "Table",
       name: "people",
       implements: [
         {
@@ -215,7 +201,6 @@ describe("trait enforcement - getter", () => {
 
   test("passes with via", () => {
     const successOrErrors = enforceTrait(hasFirstNameGetterTrait, {
-      kind: "Table",
       name: "people",
       implements: [
         {
@@ -242,7 +227,6 @@ describe("trait enforcement - getter", () => {
 
   test("fails with returns mismatch", () => {
     const successOrErrors = enforceTrait(hasFirstNameGetterTrait, {
-      kind: "Table",
       name: "people",
       implements: [
         {

@@ -185,7 +185,6 @@ const TableSpec = {
 };
 
 const Table = Record({
-  kind: Literal("Table"),
   name: PgIdentifier,
   columns: Array(Column),
 })
@@ -217,12 +216,12 @@ const Table = Record({
   );
 
 const TableExtension = Partial({
-  addColumns: Array(Column),
-  addIndexes: Array(Index),
-  addTriggers: Array(Trigger),
-  addChecks: Array(CheckConstraint),
-  addUniques: Array(UniqueConstraint),
-  addForeignKeys: Array(ForeignKey),
+  columns: Array(Column),
+  indexes: Array(Index),
+  triggers: Array(Trigger),
+  checks: Array(CheckConstraint),
+  uniques: Array(UniqueConstraint),
+  foreignKeys: Array(ForeignKey),
 });
 
 const TraitRequirement = Partial({
@@ -231,20 +230,11 @@ const TraitRequirement = Partial({
 });
 
 const Trait = Record({
-  kind: Literal("Trait"),
   name: String,
   requires: TraitRequirement,
 }).And(
   Partial({
     provides: TableExtension,
-  }),
-);
-
-const Module = Record({
-  tables: Dictionary(Table, "string"),
-}).And(
-  Partial({
-    traits: Dictionary(Trait, "string"),
   }),
 );
 
@@ -257,7 +247,6 @@ interface TraitImplementationI extends Static<typeof TraitImplementation> {}
 interface TraitRequirementI extends Static<typeof TraitRequirement> {}
 interface TraitI extends Static<typeof Trait> {}
 interface GetterI extends Static<typeof Getter> {}
-interface ModuleI extends Static<typeof Module> {}
 type TriggerI = Static<typeof Trigger>;
 type ColumnDefaultI = Static<typeof ColumnDefault>;
 type GetterVolatilityI = Static<typeof GetterVolatility>;
@@ -274,9 +263,9 @@ export {
   Getter,
   ColumnFunctionDefault,
   ColumnLiteralDefault,
+  ColumnDefault,
   Trigger,
   TriggerTiming,
-  Module,
   TableI,
   ColumnI,
   ForeignKeyI,
@@ -290,5 +279,4 @@ export {
   PgLanguageOptionsI,
   TraitImplementationI,
   TraitRequirementI,
-  ModuleI,
 };

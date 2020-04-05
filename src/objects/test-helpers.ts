@@ -1,17 +1,18 @@
-import { PgObject, RunContextI, PgIdentifierI } from "./core";
+import { ObjectProvider, PgIdentifierI } from "./core";
+import { RunContextI } from "../runners";
 import { Pool } from "pg";
 
 const pool = new Pool();
 
 export const checkIdempotency = async <ObjectType, OperationType>(
-  object: PgObject<ObjectType, OperationType>,
+  object: ObjectProvider<ObjectType, OperationType>,
   desired: ObjectType,
   identifier: PgIdentifierI,
 ): Promise<OperationType[]> => {
   const client = await pool.connect();
   await client.query("begin");
 
-  const context: RunContextI = { schema: "public" };
+  const context: RunContextI = { schema: "public", client };
 
   const operationList = object.reconcile(desired, undefined);
   const statements = operationList.map(o => object.toStatement(context)(o));
@@ -27,7 +28,7 @@ export const checkIdempotency = async <ObjectType, OperationType>(
 };
 
 export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
-  object: PgObject<ObjectType, OperationType>,
+  object: ObjectProvider<ObjectType, OperationType>,
   before: ObjectType,
   toTest: ObjectType,
   identifier: PgIdentifierI,
@@ -35,7 +36,7 @@ export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
   const client = await pool.connect();
   await client.query("begin");
 
-  const context: RunContextI = { schema: "public" };
+  const context: RunContextI = { schema: "public", client };
 
   const beforeOperationList = object.reconcile(before, undefined);
   const beforeStatements = beforeOperationList.map(o =>
@@ -63,14 +64,14 @@ export const checkIdempotencyAfterTransitions = async <
   ObjectType,
   OperationType
 >(
-  object: PgObject<ObjectType, OperationType>,
+  object: ObjectProvider<ObjectType, OperationType>,
   desireds: ObjectType[],
   identifier: PgIdentifierI,
 ): Promise<OperationType[]> => {
   const client = await pool.connect();
   await client.query("begin");
 
-  const context: RunContextI = { schema: "public" };
+  const context: RunContextI = { schema: "public", client };
 
   let runs = 0;
   let current = undefined;

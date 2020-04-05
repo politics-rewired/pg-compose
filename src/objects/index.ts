@@ -24,4 +24,6 @@
 //   ObjectsInterface,
 // };
 
-import { TableObject } from "./table";
+import { ObjectProvider } from "./core";
+
+export { ObjectProvider };
