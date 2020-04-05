@@ -3,7 +3,7 @@ import { ModuleI } from "../../objects/module/core";
 import { Record, Literal, Static } from "runtypes";
 import { TableI, TraitI } from "../../objects/table/records";
 import * as glob from "glob";
-import { parse as parseYaml } from "yaml";
+import { parseAllDocuments } from "yaml";
 import { promises as fs } from "fs";
 import { flatMap } from "lodash";
 import { flattenKeyToProp } from "../../util";
@@ -19,27 +19,35 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     glob(opts.include, (_err: any, f: string[]) => resolve(f)),
   );
 
-  const allFileContents = files
-    .map(f => fs.readFile(f))
-    .map(buffer => buffer.toString());
+  const allFileContents = (
+    await Promise.all(files.map(f => fs.readFile(f)))
+  ).map(b => b.toString());
+  console.log("allFileContents", allFileContents);
 
-  const allYamlObjects = flatMap(allFileContents, contents =>
-    parseYaml(contents),
+  const allYamlDocuments = flatMap(allFileContents, contents =>
+    parseAllDocuments(contents),
   );
 
+  const allYamlObjects = allYamlDocuments.map(d => d.toJSON());
+  console.log("allYamlObjects", allYamlObjects[0]);
+
   const tables = allYamlObjects
-    .filter(obj => YamlTable.guard(obj))
-    .map(toTable);
+    .map(t => (YamlTable.guard(t) ? toTable(t) : undefined))
+    .filter(IsNotUndefined);
 
   const traits = allYamlObjects
-    .filter(obj => YamlTrait.guard(obj))
-    .map(toTrait);
+    .map(t => (YamlTrait.guard(t) ? toTrait(t) : undefined))
+    .filter(IsNotUndefined);
+
+  console.log("traits", traits[0].provides?.triggers);
 
   return {
     tables,
     traits,
   };
 };
+
+const IsNotUndefined = <T>(x: T | undefined): x is T => x !== undefined;
 
 const YamlTable = Record({
   kind: Literal("Table"),
@@ -71,7 +79,10 @@ export const toTrait = (yaml: YamlTraitI): TraitI => ({
     columns: flattenKeyToProp(yaml.requires.columns, "name"),
   },
   provides: {
-    triggers: flattenKeyToProp(yaml.provides.triggers, "timing"),
+    triggers: addOrder(flattenKeyToProp(yaml.provides.triggers, "timing")),
     columns: flattenKeyToProp(yaml.provides.columns, "name"),
   },
 });
+
+const addOrder = <T>(arr: T[]): (T & { order: number })[] =>
+  arr.map((el, idx) => Object.assign(el, { order: idx + 1 }));

@@ -19,14 +19,23 @@ export const groupByAndPluckFirst = <T>(arr: T[], fn: (item: T) => string) => {
 };
 
 export const flattenKeyToProp = <T, U>(
-  obj: { [key: string]: T },
+  obj: { [key: string]: T } | undefined,
   prop: string,
 ): U[] => {
+  if (obj === undefined) return [];
+
   const keys = Object.keys(obj);
 
   return flatMap(keys, k => {
-    const u = (Object.assign({}, obj[k], { [prop]: k }) as unknown) as U | U[];
+    if (Array.isArray(obj[k])) {
+      const u = (obj[k] as any).map((o: any) =>
+        Object.assign({}, o, { [prop]: k }),
+      ) as U[];
+      return u;
+    } else {
+      const u = (Object.assign({}, obj[k], { [prop]: k }) as unknown) as U;
 
-    return u;
+      return u;
+    }
   });
 };
