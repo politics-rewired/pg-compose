@@ -1,29 +1,69 @@
-import { TableI, TableExtensionI } from "./records";
+import {
+  TableI,
+  TableExtensionI,
+  TraitImplementationI,
+  TraitRequirementI,
+  TriggerI,
+} from "./records";
+import { render } from "mustache";
 
-const concatPropIfExists = (
-  prop: string,
-  addProp: string,
-  table: TableI,
-  extension: TableExtensionI,
-) => (table[prop] || []).concat(extension[addProp] || []);
+const identity = (
+  _traitImplementation: TraitImplementationI | undefined,
+  _traitRequirement: TraitRequirementI | undefined,
+) => (x: any) => x;
 
-const propsToAddProps = [
-  ["columns", "addColumns"],
-  ["indexes", "addIndexes"],
-  ["triggers", "addTriggers"],
-  ["checks", "addCheckConstraints"],
-  ["uniques", "addUniques"],
-  ["foreignKeys", "addForeignKeys"],
+const makeTransformTrigger = (
+  traitImplementation: TraitImplementationI | undefined,
+  traitRequirement: TraitRequirementI | undefined,
+) => (trigger: TriggerI) => {
+  if (traitImplementation === undefined || traitRequirement === undefined) {
+    return trigger;
+  }
+
+  const traitVars = (traitRequirement.columns || []).reduce(
+    (acc, col) =>
+      Object.assign(acc, {
+        [col.name]:
+          traitImplementation.via && traitImplementation.via.columns
+            ? traitImplementation.via.columns[col.name]
+            : col.name,
+      }),
+    {},
+  );
+
+  return Object.assign({}, trigger, {
+    body: render(trigger.body, traitVars),
+  });
+};
+
+type Transformer<T> = (
+  TraitImplementation: TraitImplementationI | undefined,
+  traitRequirement: TraitRequirementI | undefined,
+) => (el: T) => T;
+
+const propsWithTransformers: [string, Transformer<any>][] = [
+  ["columns", identity],
+  ["indexes", identity],
+  ["triggers", makeTransformTrigger],
+  ["checks", identity],
+  ["uniques", identity],
+  ["foreignKeys", identity],
 ];
 
 export const extendTable = (
   table: TableI,
   extension: TableExtensionI,
+  traitImplementation: TraitImplementationI,
+  traitRequirement: TraitRequirementI,
 ): TableI => {
   const result = Object.assign({}, table);
 
-  for (const [prop, addProp] of propsToAddProps) {
-    result[prop] = concatPropIfExists(prop, addProp, table, extension);
+  for (const [prop, transformer] of propsWithTransformers) {
+    result[prop] = (table[prop] || []).concat(
+      (extension[prop] || []).map((el: any) =>
+        transformer(traitImplementation, traitRequirement)(el),
+      ),
+    );
   }
 
   return result;

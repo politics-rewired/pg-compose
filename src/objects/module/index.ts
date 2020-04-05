@@ -29,7 +29,7 @@ const reconcile = (
 
     const implementedTraits = table.implements;
 
-    const extensions = {};
+    let nextTable = table;
 
     for (const traitImplementation of implementedTraits) {
       const trait = (desired.traits || []).find(
@@ -48,10 +48,17 @@ const reconcile = (
         throw new Error(enforcementResult.join("\n"));
       }
 
-      Object.assign(extensions, trait.provides || {});
+      if (trait.provides !== undefined) {
+        nextTable = extendTable(
+          nextTable,
+          trait.provides,
+          traitImplementation,
+          trait.requires,
+        );
+      }
     }
 
-    return extendTable(table, extensions);
+    return nextTable;
   };
 
   const expandedTables = (desired.tables || []).map(maybeExpandTable);
