@@ -1,0 +1,48 @@
+kind: Table
+name: events
+columns:
+  id:
+    type: uuid
+    default:
+      type: function
+      fn: uuid_generate_v1mc()
+    nullable: false
+  title:
+    type: text
+  starts_at:
+    type: timestamptz
+  ends_at:
+    type: timestamptz
+---
+kind: Table
+name: people
+columns:
+  id:
+    type: uuid
+    default:
+      type: function
+      fn: uuid_generate_v1mc()
+  first_name:
+    type: text
+  last_name:
+    type: text
+  updated_at:
+    type: timestamptz
+---
+kind: Trait
+name: auto_update
+requires:
+  columns:
+    updated_at:
+      type: timestamptz
+provides:
+  triggers:
+    before_update:
+      - name: auto_update_updated_at
+        language: plpgsql
+        for_each: row
+        body: |
+          begin
+            NEW.{{ updated_at }} = now();
+            return NEW;
+          end;
