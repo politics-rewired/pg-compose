@@ -29,6 +29,7 @@ const reconcile = (
     }
 
     const implementedTraits = table.implements;
+    console.log("implementedTraits", implementedTraits);
 
     let nextTable = table;
 
@@ -63,6 +64,7 @@ const reconcile = (
   };
 
   const expandedTables = (desired.tables || []).map(maybeExpandTable);
+  console.log("expandedTables", expandedTables);
 
   const tableOperations = createOperationsForNameableObject(
     expandedTables,

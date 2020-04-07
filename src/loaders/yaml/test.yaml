@@ -16,6 +16,11 @@ columns:
 ---
 kind: Table
 name: people
+implements:
+  - trait: auto_update
+    via:
+      columns:
+        updated_at: modified_at
 columns:
   id:
     type: uuid
@@ -26,7 +31,7 @@ columns:
     type: text
   last_name:
     type: text
-  updated_at:
+  modified_at:
     type: timestamptz
 ---
 kind: Trait

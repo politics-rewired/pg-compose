@@ -36,6 +36,7 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
   const traits = allYamlObjects
     .map(t => (YamlTrait.guard(t) ? toTrait(t) : undefined))
     .filter(IsNotUndefined);
+  console.log("traits", traits);
 
   return {
     tables,
@@ -63,6 +64,7 @@ interface YamlTraitI extends Static<typeof YamlTrait> {
 
 export const toTable = (yaml: YamlTableI): TableI => ({
   name: yaml.name,
+  implements: yaml.implements,
   columns: flattenKeyToProp(yaml.columns, "name"),
   indexes: flattenKeyToProp(yaml.indexes, "name"),
   previous_name: yaml.previous_name,

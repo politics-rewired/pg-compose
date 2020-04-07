@@ -57,12 +57,12 @@ const makeTableToStatement = (context: RunContextI) =>
   match(
     [
       CreateTableOperation,
-      op => `CREATE TABLE "${context.schema}"."${op.table.name}" ()`,
+      op => `CREATE TABLE "${context.schema}"."${op.table.name}" ();`,
     ],
     [
       RenameTableOperation,
       op =>
-        `ALTER TABLE "${context.schema}"."${op.table.previous_name}" rename to "${op.table.name}"`,
+        `ALTER TABLE "${context.schema}"."${op.table.previous_name}" rename to "${op.table.name}";`,
     ],
   );
 
@@ -84,7 +84,7 @@ const makeColumnToStatement = (context: RunContextI) =>
               ? []
               : [`DEFAULT ${makeDefaultString(op.column.default)}`],
           )
-          .join(" "),
+          .join(" ") + ";",
     ],
     [
       RenameColumnOperation,
@@ -94,7 +94,7 @@ const makeColumnToStatement = (context: RunContextI) =>
     [
       SetColumnDataTypeOperation,
       op =>
-        `ALTER TABLE "${context.schema}"."${op.table.name}" column ${op.column.name} set data type ${op.column.type}`,
+        `ALTER TABLE "${context.schema}"."${op.table.name}" column ${op.column.name} set data type ${op.column.type};`,
     ],
     [
       SetColumnDefaultOperation,
@@ -105,14 +105,14 @@ const makeColumnToStatement = (context: RunContextI) =>
           op.column.default === undefined
             ? "drop default"
             : `set default ${makeDefaultString(op.column.default)}`
-        }`,
+        };`,
     ],
     [
       SetColumnNullableOperation,
       op =>
         `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${
           op.column.name
-        } ${op.column.nullable ? "DROP NOT NULL" : "SET NOT NULL"}`,
+        } ${op.column.nullable ? "DROP NOT NULL" : "SET NOT NULL"};`,
     ],
   );
 
@@ -137,16 +137,16 @@ export const makeIndexToStatement = (context: RunContextI) =>
           op.index.include !== undefined
             ? `INCLUDE (${op.index.include.map(c => c.column).join(", ")})`
             : ""
-        } ${op.index.where ? `WHERE ${op.index.where}` : ""}`,
+        } ${op.index.where ? `WHERE ${op.index.where}` : ""};`,
     ],
     [
       RenameIndexOperation,
       op =>
-        `ALTER INDEX "${context.schema}".${op.index.previous_name} rename to ${op.index.name}`,
+        `ALTER INDEX "${context.schema}".${op.index.previous_name} rename to ${op.index.name};`,
     ],
     [
       DropIndexOperation,
-      op => `DROP INDEX "${context.schema}".${op.index.name}`,
+      op => `DROP INDEX "${context.schema}".${op.index.name};`,
     ],
     [
       MakeIndexPrimaryKeyOperation,
@@ -154,7 +154,7 @@ export const makeIndexToStatement = (context: RunContextI) =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
           op.table.name,
-        )} ADD PRIMARY KEY USING INDEX ${op.index.name}`,
+        )} ADD PRIMARY KEY USING INDEX ${op.index.name};`,
     ],
     [
       DropPrimaryKeyOperation,
@@ -162,7 +162,7 @@ export const makeIndexToStatement = (context: RunContextI) =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
           op.table.name,
-        )} DROP CONSTRAINT ${op.index.primaryKeyConstraintName}`,
+        )} DROP CONSTRAINT ${op.index.primaryKeyConstraintName};`,
     ],
     [
       Unknown,
@@ -186,19 +186,20 @@ export const makeTriggerToStatement = (context: RunContextI) =>
         );
 
         const createOrReplaceFunctionStatement = `
-          CREATE OR REPLACE FUNCTION "${context.schema}".${functionName}() returns trigger as $$ ${op.trigger.body} $$ language plpgsql strict;
-        `;
+CREATE OR REPLACE FUNCTION "${context.schema}".${functionName}()
+returns trigger as $$
+${op.trigger.body}
+$$ language plpgsql strict;`;
 
         const createTriggerStatement = `
-          CREATE TRIGGER ${triggerName}
-            ${op.trigger.timing.replace("_", " ")}
-            ON ${makeTableIdentifier(context.schema, op.table.name)}
-            FOR EACH ROW
-            ${op.trigger.when ? "WHEN ${op.trigger.when" : ""}
-            EXECUTE FUNCTION ${functionName}();
+CREATE TRIGGER ${triggerName}
+  ${op.trigger.timing.replace("_", " ")}
+  ON ${makeTableIdentifier(context.schema, op.table.name)}
+  FOR EACH ROW ${op.trigger.when ? "WHEN ${op.trigger.when" : ""}
+  EXECUTE FUNCTION ${functionName}();
         `;
 
-        return `${createOrReplaceFunctionStatement} ${createTriggerStatement}`;
+        return `${createOrReplaceFunctionStatement}\n${createTriggerStatement}`;
       },
     ],
     [
