@@ -1,7 +1,10 @@
 import { Record, Partial, Union, Boolean, Static, String } from "runtypes";
 import { PgIdentifier } from "../objects/core";
+import { ModuleOperationType } from "../objects/module";
 import { PoolClient } from "pg";
 import { promises as fs } from "fs";
+import { render, Box } from "ink";
+import { createElement as h } from "react";
 
 export const RunContext = Record({
   schema: PgIdentifier,
@@ -35,15 +38,15 @@ type ToStatementFunction<OperationType> = (
   context: RunContextI,
 ) => string;
 
-// type Runner<OperationType> = (
-//   operations: OperationType[],
-//   toStatement: ToStatementFunction<OperationType>,
-//   context: RunContextI,
-// ) => Promise<void>;
+export type Runner = (
+  operations: ModuleOperationType[],
+  toStatement: ToStatementFunction<ModuleOperationType>,
+  context: RunContextI | ToFileRunContextI,
+) => Promise<void>;
 
-export const directRunner = async <OperationType>(
-  operations: OperationType[],
-  toStatement: ToStatementFunction<OperationType>,
+export const directRunner: Runner = async (
+  operations: ModuleOperationType[],
+  toStatement: ToStatementFunction<ModuleOperationType>,
   context: RunContextI,
 ): Promise<void> => {
   for (const op of operations) {
@@ -57,9 +60,25 @@ export const directRunner = async <OperationType>(
   }
 };
 
-export const fileRunner = async <OperationType>(
-  operations: OperationType[],
-  toStatement: ToStatementFunction<OperationType>,
+export const interactiveRunner: Runner = async (
+  operations: ModuleOperationType[],
+  toStatement: ToStatementFunction<ModuleOperationType>,
+  context: RunContextI,
+): Promise<void> => {
+  const allStatements = operations.map(op => toStatement(op, context));
+
+  render(
+    h(
+      Box,
+      { flexDirection: "column" },
+      allStatements.map(s => h(Box, null, s)),
+    ),
+  );
+};
+
+export const fileRunner: Runner = async (
+  operations: ModuleOperationType[],
+  toStatement: ToStatementFunction<ModuleOperationType>,
   context: ToFileRunContextI,
 ): Promise<void> => {
   const allStatements = operations.map(op => toStatement(op, context));

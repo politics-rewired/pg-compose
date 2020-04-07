@@ -22,14 +22,12 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
   const allFileContents = (
     await Promise.all(files.map(f => fs.readFile(f)))
   ).map(b => b.toString());
-  console.log("allFileContents", allFileContents);
 
   const allYamlDocuments = flatMap(allFileContents, contents =>
     parseAllDocuments(contents),
   );
 
   const allYamlObjects = allYamlDocuments.map(d => d.toJSON());
-  console.log("allYamlObjects", allYamlObjects[0]);
 
   const tables = allYamlObjects
     .map(t => (YamlTable.guard(t) ? toTable(t) : undefined))
@@ -38,8 +36,6 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
   const traits = allYamlObjects
     .map(t => (YamlTrait.guard(t) ? toTrait(t) : undefined))
     .filter(IsNotUndefined);
-
-  console.log("traits", traits[0].provides?.triggers);
 
   return {
     tables,

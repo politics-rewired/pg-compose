@@ -10,7 +10,7 @@ import { enforceTrait } from "../table/trait";
 import { extendTable } from "../table/extend";
 
 // const ModuleOperation = Union(TableOperation);
-type ModuleOperationType = TableOperationType;
+export type ModuleOperationType = TableOperationType;
 
 const reconcile = (
   desired: ModuleI,
@@ -21,6 +21,7 @@ const reconcile = (
   //   [Boolean, x => x],
   //   [Record({ tables: Boolean }), x => x.tables],
   // );
+  const shouldDropTables = false;
 
   const maybeExpandTable = (table: TableI): TableI => {
     if (table.implements === undefined) {
@@ -67,7 +68,7 @@ const reconcile = (
     expandedTables,
     current === undefined ? [] : current.tables,
     TableProvider.reconcile,
-    // { dropObjects: shouldDropTables },
+    { dropObjects: shouldDropTables },
   );
 
   return tableOperations;
