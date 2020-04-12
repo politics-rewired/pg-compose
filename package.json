@@ -13,7 +13,7 @@
     "test:watch": "jest --watch"
   },
   "bin": {
-    "graphile-worker": "./dist/cli.js"
+    "pg-compose": "./dist/cli.js"
   },
   "repository": {
     "type": "git",
@@ -78,8 +78,7 @@
     "typescript": "^3.7.5"
   },
   "files": [
-    "dist",
-    "sql"
+    "dist"
   ],
   "engines": {
     "node": ">=10.0.0"
