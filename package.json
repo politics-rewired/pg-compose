@@ -9,10 +9,8 @@
     "lint": "yarn prettier:check && eslint --ext .js,.jsx,.ts,.tsx,.graphql .",
     "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx,.graphql . --fix; prettier --ignore-path .eslintignore --write '**/*.{js,jsx,ts,tsx,graphql,md,json}'",
     "prettier:check": "prettier --ignore-path .eslintignore --check '**/*.{js,jsx,ts,tsx,graphql,md,json}'",
-    "test:unit": "jest",
-    "test:watch": "jest --watch",
-    "test": "yarn prepack && depcheck && createdb graphile_worker_test || true && psql -X -v GRAPHILE_WORKER_SCHEMA=\"${GRAPHILE_WORKER_SCHEMA:-graphile_worker}\" -v ON_ERROR_STOP=1 -f __tests__/reset-db.sql graphile_worker_test && jest -i",
-    "perfTest": "cd perfTest && node ./run.js"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "bin": {
     "graphile-worker": "./dist/cli.js"
@@ -25,13 +23,10 @@
     "postgresql",
     "postgres",
     "pg",
-    "worker",
     "sql",
-    "easy",
-    "fast",
-    "jobs",
-    "background",
-    "tasks"
+    "compose",
+    "install",
+    "test"
   ],
   "author": "Ben Packer <ben.paul.ryan.packer@gmail.com>",
   "license": "MIT",

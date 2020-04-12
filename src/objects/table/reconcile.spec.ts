@@ -5,7 +5,6 @@ import { ColumnOpCodes, CreateColumnOperation } from "./columns";
 describe("table migrations", () => {
   test("should return a create table operation", () => {
     const desired: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {
@@ -29,7 +28,6 @@ describe("table migrations", () => {
 
   test("should return a create table operation", () => {
     const desired: TableI = {
-      kind: "Table",
       name: "people_2",
       previous_name: "people",
       columns: [
@@ -47,7 +45,6 @@ describe("table migrations", () => {
     };
 
     const current: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {
@@ -71,7 +68,6 @@ describe("table migrations", () => {
 
   test("should return a create column operation", () => {
     const desiredTables: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {
@@ -88,7 +84,6 @@ describe("table migrations", () => {
     };
 
     const currentTables: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {
@@ -113,7 +108,6 @@ describe("table migrations", () => {
 
   test("should return a rename column operation", () => {
     const desired: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {
@@ -131,7 +125,6 @@ describe("table migrations", () => {
     };
 
     const current: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {
@@ -155,7 +148,6 @@ describe("table migrations", () => {
 
   test("should return  change data type and nullable operations", () => {
     const desired: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {
@@ -168,7 +160,6 @@ describe("table migrations", () => {
     };
 
     const current: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {
@@ -192,7 +183,6 @@ describe("table migrations", () => {
 
   test("should return drop column operations", () => {
     const desired: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {
@@ -204,7 +194,6 @@ describe("table migrations", () => {
     };
 
     const current: TableI = {
-      kind: "Table",
       name: "people",
       columns: [
         {

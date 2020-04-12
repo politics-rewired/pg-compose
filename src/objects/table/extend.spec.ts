@@ -4,13 +4,16 @@ describe("extend", () => {
   test("basic addColumns", () => {
     const extended = extendTable(
       {
-        kind: "Table",
         name: "people",
         columns: [{ name: "first_name", type: "text" }],
       },
       {
-        addColumns: [{ name: "last_name", type: "text" }],
+        columns: [{ name: "last_name", type: "text" }],
       },
+      {
+        trait: "a",
+      },
+      {},
     );
 
     expect(extended.columns).toHaveLength(2);

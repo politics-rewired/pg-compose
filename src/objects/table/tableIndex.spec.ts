@@ -9,7 +9,6 @@ describe("table index idempotency", () => {
     const newOperationList = await checkIdempotency(
       TableProvider,
       {
-        kind: "Table",
         name: "people",
         columns: [{ name: "first", type: "text" }],
         indexes: [{ name: "first_idx", on: [{ column: "first" }] }],
@@ -23,7 +22,6 @@ describe("table index idempotency", () => {
     const newOperationList = await checkIdempotency(
       TableProvider,
       {
-        kind: "Table",
         name: "people",
         columns: [
           {
@@ -51,7 +49,6 @@ describe("table index idempotency", () => {
     const newOperationList = await checkIdempotency(
       TableProvider,
       {
-        kind: "Table",
         name: "people",
         columns: [
           {
@@ -84,7 +81,6 @@ describe("table index idempotency", () => {
     const newOperationList = await checkIdempotency(
       TableProvider,
       {
-        kind: "Table",
         name: "people",
         columns: [
           {
@@ -124,13 +120,11 @@ describe("table index idempotency after transitions", () => {
       TableProvider,
       [
         {
-          kind: "Table",
           name: "people",
           columns: [{ name: "first", type: "text" }],
           indexes: [{ name: "first_idx", on: [{ column: "first" }] }],
         },
         {
-          kind: "Table",
           name: "people",
           columns: [{ name: "first", type: "text" }],
           indexes: [
@@ -152,7 +146,6 @@ describe("table index idempotency after transitions", () => {
       TableProvider,
       [
         {
-          kind: "Table",
           name: "people",
           columns: [
             {
@@ -165,7 +158,6 @@ describe("table index idempotency after transitions", () => {
           indexes: [{ name: "people_pkey", on: [{ column: "id" }] }],
         },
         {
-          kind: "Table",
           name: "people",
           columns: [
             {
