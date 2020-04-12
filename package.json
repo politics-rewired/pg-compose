@@ -22,6 +22,7 @@
   "keywords": [
     "postgresql",
     "postgres",
+    "migrations",
     "pg",
     "sql",
     "compose",
