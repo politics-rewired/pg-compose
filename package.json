@@ -41,6 +41,7 @@
   "homepage": "https://github.com/politics-rewired/pg-compose#readme",
   "dependencies": {
     "@types/lodash": "^4.14.149",
+    "@types/tape": "^4.2.34",
     "@types/yaml": "^1.2.0",
     "@types/yargs": "^15.0.4",
     "chokidar": "^3.3.1",
@@ -52,6 +53,7 @@
     "pg": "^7.18.2",
     "react": "^16.13.1",
     "runtypes": "^4.2.0",
+    "tape": "^4.13.2",
     "tslib": "^1.9.3",
     "yaml": "^1.8.2",
     "yargs": "^15.3.1"

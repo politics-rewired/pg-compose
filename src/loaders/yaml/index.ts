@@ -7,6 +7,7 @@ import { parseAllDocuments } from "yaml";
 import { promises as fs } from "fs";
 import { flatMap } from "lodash";
 import { flattenKeyToProp } from "../../util";
+import { TestI } from "../../objects/test";
 
 interface YamlLoaderOpts {
   include: string;
@@ -36,11 +37,15 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
   const traits = allYamlObjects
     .map(t => (YamlTrait.guard(t) ? toTrait(t) : undefined))
     .filter(IsNotUndefined);
-  console.log("traits", traits);
+
+  const tests = allYamlObjects
+    .map(t => (YamlTest.guard(t) ? toTest(t) : undefined))
+    .filter(IsNotUndefined);
 
   return {
     tables,
     traits,
+    tests,
   };
 };
 
@@ -54,11 +59,19 @@ const YamlTrait = Record({
   kind: Literal("Trait"),
 });
 
+const YamlTest = Record({
+  kind: Literal("Test"),
+});
+
 interface YamlTableI extends Static<typeof YamlTable> {
   [key: string]: any;
 }
 
 interface YamlTraitI extends Static<typeof YamlTrait> {
+  [key: string]: any;
+}
+
+interface YamlTestI extends Static<typeof YamlTest> {
   [key: string]: any;
 }
 
@@ -77,9 +90,17 @@ export const toTrait = (yaml: YamlTraitI): TraitI => ({
     columns: flattenKeyToProp(yaml.requires.columns, "name"),
   },
   provides: {
-    triggers: addOrder(flattenKeyToProp(yaml.provides.triggers, "timing")),
+    triggers: addOrder(
+      flattenKeyToProp(yaml.provides ? yaml.provides.triggers : {}, "timing"),
+    ),
     columns: flattenKeyToProp(yaml.provides.columns, "name"),
   },
+});
+
+export const toTest = (yaml: YamlTestI): TestI => ({
+  name: yaml.name,
+  setup: yaml.setup,
+  assertions: yaml.assertions,
 });
 
 const addOrder = <T>(arr: T[]): (T & { order: number })[] =>

@@ -57,7 +57,6 @@ export const extendTable = (
   traitRequirement: TraitRequirementI,
 ): TableI => {
   const result = Object.assign({}, table);
-  console.log("extension", extension);
 
   for (const [prop, transformer] of propsWithTransformers) {
     result[prop] = (table[prop] || []).concat(
@@ -65,9 +64,6 @@ export const extendTable = (
         transformer(traitImplementation, traitRequirement)(el),
       ),
     );
-
-    console.log(prop);
-    console.log("result[prop]", result[prop]);
   }
 
   return result;
