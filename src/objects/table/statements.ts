@@ -10,8 +10,8 @@ import {
   CreateIndexOperation,
   RenameIndexOperation,
   DropIndexOperation,
-  MakeIndexPrimaryKeyOperation,
-  DropPrimaryKeyOperation,
+  MakeIndexprimary_keyOperation,
+  Dropprimary_keyOperation,
   IndexOperation,
 } from "./tableIndex";
 import {
@@ -21,9 +21,9 @@ import {
   ReorderTriggerOperation,
 } from "./triggers";
 import {
-  ForeignKeyOperation,
-  CreateForeignKeyOperation,
-  DropForeignKeyOperation,
+  foreign_keyOperation,
+  Createforeign_keyOperation,
+  Dropforeign_keyOperation,
 } from "./foreignKeys";
 import {
   CreateTableOperation,
@@ -149,7 +149,7 @@ export const makeIndexToStatement = (context: RunContextI) =>
       op => `DROP INDEX "${context.schema}".${op.index.name};`,
     ],
     [
-      MakeIndexPrimaryKeyOperation,
+      MakeIndexprimary_keyOperation,
       op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
@@ -157,12 +157,12 @@ export const makeIndexToStatement = (context: RunContextI) =>
         )} ADD PRIMARY KEY USING INDEX ${op.index.name};`,
     ],
     [
-      DropPrimaryKeyOperation,
+      Dropprimary_keyOperation,
       op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
           op.table.name,
-        )} DROP CONSTRAINT ${op.index.primaryKeyConstraintName};`,
+        )} DROP CONSTRAINT ${op.index.primary_key_constraint_name};`,
     ],
     [
       Unknown,
@@ -251,28 +251,28 @@ CREATE TRIGGER ${triggerName}
     ],
   );
 
-export const makeForeignKeyToStatement = (context: RunContextI) =>
+export const makeforeign_keyToStatement = (context: RunContextI) =>
   match(
     [
-      CreateForeignKeyOperation,
+      Createforeign_keyOperation,
       op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
           op.table.name,
-        )} ADD FOREIGN KEY (${op.foreignKey.on.join(
+        )} ADD FOREIGN KEY (${op.foreign_key.on.join(
           ", ",
         )}) REFERENCES ${makeTableIdentifier(
           context.schema,
-          op.foreignKey.references.table,
-        )} (${op.foreignKey.references.columns.join(", ")});`,
+          op.foreign_key.references.table,
+        )} (${op.foreign_key.references.columns.join(", ")});`,
     ],
     [
-      DropForeignKeyOperation,
+      Dropforeign_keyOperation,
       op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
           op.table.name,
-        )} DROP CONSTRAINT ${op.foreignKey.name};`,
+        )} DROP CONSTRAINT ${op.foreign_key.name};`,
     ],
   );
 
@@ -282,7 +282,7 @@ export const makeToStatement = (context: RunContextI) =>
     [ColumnOperation, makeColumnToStatement(context)],
     [IndexOperation, makeIndexToStatement(context)],
     [TriggerOperation, makeTriggerToStatement(context)],
-    [ForeignKeyOperation, makeForeignKeyToStatement(context)],
+    [foreign_keyOperation, makeforeign_keyToStatement(context)],
     [
       Unknown,
       op => {

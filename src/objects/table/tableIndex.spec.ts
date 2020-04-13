@@ -35,7 +35,7 @@ describe("table index idempotency", () => {
           {
             name: "people_id_idx",
             on: [{ column: "id" }],
-            primaryKey: true,
+            primary_key: true,
             unique: true,
           },
         ],
@@ -67,7 +67,7 @@ describe("table index idempotency", () => {
             name: "people_id_idx",
             on: [{ column: "id" }],
             include: [{ column: "first_name" }],
-            primaryKey: true,
+            primary_key: true,
             unique: true,
           },
         ],
@@ -171,7 +171,7 @@ describe("table index idempotency after transitions", () => {
             {
               name: "people_pkey",
               on: [{ column: "id" }],
-              primaryKey: true,
+              primary_key: true,
               unique: true,
             },
           ],

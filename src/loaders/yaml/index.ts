@@ -7,7 +7,8 @@ import { parseAllDocuments } from "yaml";
 import { promises as fs } from "fs";
 import { flatMap } from "lodash";
 import { flattenKeyToProp } from "../../util";
-import { TestI } from "../../objects/test";
+import { TestI, TestRecord } from "../../objects/test";
+import { TableRecord, TraitRecord } from "../../objects/table";
 
 interface YamlLoaderOpts {
   include: string;
@@ -41,6 +42,18 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
   const tests = allYamlObjects
     .map(t => (YamlTest.guard(t) ? toTest(t) : undefined))
     .filter(IsNotUndefined);
+
+  for (const table of tables) {
+    TableRecord.check(table);
+  }
+
+  for (const trait of traits) {
+    TraitRecord.check(trait);
+  }
+
+  for (const test of tests) {
+    TestRecord.check(test);
+  }
 
   return {
     tables,

@@ -29,7 +29,7 @@ describe("foreign key idempotency", () => {
       {
         name: "event_pkey",
         on: [{ column: "id" }],
-        primaryKey: true,
+        primary_key: true,
         unique: true,
       },
     ],
@@ -46,7 +46,7 @@ describe("foreign key idempotency", () => {
           { name: "last_name", type: "text" },
           { name: "attending_event", type: "uuid" },
         ],
-        foreignKeys: [
+        foreign_keys: [
           {
             on: ["attending_event"],
             references: {
@@ -91,7 +91,7 @@ describe("foreign key idempotency", () => {
   //     {
   //       name: "event_pkey",
   //       on: [{ column: "tenant_id" }, { column: "id" }],
-  //       primaryKey: true,
+  //       primary_key: true,
   //       unique: true,
   //     },
   //   ],
@@ -110,7 +110,7 @@ describe("foreign key idempotency", () => {
   //         { name: "tenant_id", type: "uuid" },
   //         { name: "attending_event", type: "uuid" },
   //       ],
-  //       foreignKeys: [
+  //       foreign_keys: [
   //         {
   //           on: ["tenant_id", "attending_event"],
   //           references: {

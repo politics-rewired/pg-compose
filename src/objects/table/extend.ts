@@ -47,7 +47,7 @@ const propsWithTransformers: [string, Transformer<any>][] = [
   ["triggers", makeTransformTrigger],
   ["checks", identity],
   ["uniques", identity],
-  ["foreignKeys", identity],
+  ["foreign_keys", identity],
 ];
 
 export const extendTable = (

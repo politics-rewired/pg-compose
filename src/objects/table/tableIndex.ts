@@ -5,8 +5,8 @@ export enum IndexOpCodes {
   CreateIndex = "create_index",
   RenameIndex = "rename_index",
   DropIndex = "drop_index",
-  MakeIndexPrimaryKey = "make_index_primary_key",
-  DropPrimaryKey = "drop_primary_key",
+  MakeIndexprimary_key = "make_index_primary_key",
+  Dropprimary_key = "drop_primary_key",
 }
 
 export const CreateIndexOperation = Record({
@@ -27,14 +27,14 @@ export const DropIndexOperation = Record({
   table: Table,
 });
 
-export const MakeIndexPrimaryKeyOperation = Record({
-  code: Literal(IndexOpCodes.MakeIndexPrimaryKey),
+export const MakeIndexprimary_keyOperation = Record({
+  code: Literal(IndexOpCodes.MakeIndexprimary_key),
   index: Index,
   table: Table,
 });
 
-export const DropPrimaryKeyOperation = Record({
-  code: Literal(IndexOpCodes.DropPrimaryKey),
+export const Dropprimary_keyOperation = Record({
+  code: Literal(IndexOpCodes.Dropprimary_key),
   index: Index,
   table: Table,
 });
@@ -43,8 +43,8 @@ export const IndexOperation = Union(
   CreateIndexOperation,
   RenameIndexOperation,
   DropIndexOperation,
-  MakeIndexPrimaryKeyOperation,
-  DropPrimaryKeyOperation,
+  MakeIndexprimary_keyOperation,
+  Dropprimary_keyOperation,
 );
 
 export type IndexOperationType = Static<typeof IndexOperation>;
@@ -71,10 +71,10 @@ const matchFn = (desiredTable: TableI) =>
             table: desiredTable,
           },
         ].concat(
-          desired.primaryKey
+          desired.primary_key
             ? [
                 {
-                  code: IndexOpCodes.MakeIndexPrimaryKey,
+                  code: IndexOpCodes.MakeIndexprimary_key,
                   index: desired,
                   table: desiredTable,
                 },
@@ -87,8 +87,8 @@ const matchFn = (desiredTable: TableI) =>
       ([_, current]) => [
         {
           code:
-            current.primaryKey === true
-              ? IndexOpCodes.DropPrimaryKey
+            current.primary_key === true
+              ? IndexOpCodes.Dropprimary_key
               : IndexOpCodes.DropIndex,
           index: current,
           table: desiredTable,
@@ -138,19 +138,19 @@ const matchFn = (desiredTable: TableI) =>
         }
 
         if (
-          desired.primaryKey === true &&
-          desired.primaryKey !== current.primaryKey
+          desired.primary_key === true &&
+          desired.primary_key !== current.primary_key
         ) {
           operations.push({
-            code: IndexOpCodes.MakeIndexPrimaryKey,
+            code: IndexOpCodes.MakeIndexprimary_key,
             index: desired,
             table: desiredTable,
           });
         }
 
         if (
-          current.primaryKey === true &&
-          desired.primaryKey !== current.primaryKey
+          current.primary_key === true &&
+          desired.primary_key !== current.primary_key
         ) {
           operations.push({
             code: IndexOpCodes.CreateIndex,
@@ -159,7 +159,7 @@ const matchFn = (desiredTable: TableI) =>
           });
 
           operations.push({
-            code: IndexOpCodes.DropPrimaryKey,
+            code: IndexOpCodes.Dropprimary_key,
             index: current,
             table: desiredTable,
           });

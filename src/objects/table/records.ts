@@ -56,7 +56,7 @@ const Column = Record({
     { name: "Column default must be numeric if its type is numeric" },
   );
 
-const ForeignKey = Record({
+const foreign_key = Record({
   on: Array(PgIdentifier),
   references: Record({
     table: PgIdentifier,
@@ -102,12 +102,12 @@ const Index = Record({
       where: String,
       unique: Boolean,
       include: Array(Record({ column: PgIdentifier })),
-      primaryKey: Boolean,
-      primaryKeyConstraintName: PgIdentifier,
+      primary_key: Boolean,
+      primary_key_constraint_name: PgIdentifier,
     }),
   )
   .withConstraint(
-    idx => (idx.primaryKey === true ? idx.unique === true : true),
+    idx => (idx.primary_key === true ? idx.unique === true : true),
     { name: "Primary keys must be unique" },
   );
 
@@ -175,7 +175,7 @@ const Getter = GetterContract.And(
 const TableSpec = {
   previous_name: PgIdentifier,
   indexes: Array(Index),
-  foreignKeys: Array(ForeignKey),
+  foreign_keys: Array(foreign_key),
   checks: Array(CheckConstraint),
   uniques: Array(UniqueConstraint),
   implements: Array(TraitImplementation),
@@ -195,20 +195,20 @@ const Table = Record({
       if (indexes === undefined) {
         return true;
       }
-      return indexes.filter(index => index.primaryKey === true).length <= 1;
+      return indexes.filter(index => index.primary_key === true).length <= 1;
     },
     { name: "Only 1 primary key per table" },
   )
   .withConstraint(
     table => {
-      const primaryKey = table.indexes?.find(idx => idx.primaryKey);
-      if (primaryKey === undefined) {
+      const primary_key = table.indexes?.find(idx => idx.primary_key);
+      if (primary_key === undefined) {
         return true;
       }
-      const columnsInPrimaryKey = primaryKey.on.map(indexCol =>
+      const columnsInprimary_key = primary_key.on.map(indexCol =>
         table.columns.find(col => col.name === indexCol.column),
       );
-      return columnsInPrimaryKey.every(col => col?.nullable === false);
+      return columnsInprimary_key.every(col => col?.nullable === false);
     },
     {
       name: "Primary keys must be on non-nullable columns ",
@@ -221,7 +221,7 @@ const TableExtension = Partial({
   triggers: Array(Trigger),
   checks: Array(CheckConstraint),
   uniques: Array(UniqueConstraint),
-  foreignKeys: Array(ForeignKey),
+  foreign_keys: Array(foreign_key),
 });
 
 const TraitRequirement = Partial({
@@ -240,7 +240,7 @@ const Trait = Record({
 
 interface TableI extends Static<typeof Table> {}
 interface ColumnI extends Static<typeof Column> {}
-interface ForeignKeyI extends Static<typeof ForeignKey> {}
+interface foreign_keyI extends Static<typeof foreign_key> {}
 interface IndexI extends Static<typeof Index> {}
 interface TableExtensionI extends Static<typeof TableExtension> {}
 interface TraitImplementationI extends Static<typeof TraitImplementation> {}
@@ -258,7 +258,7 @@ export {
   TraitImplementation,
   TableExtension,
   Column,
-  ForeignKey,
+  foreign_key,
   Index,
   Getter,
   ColumnFunctionDefault,
@@ -268,7 +268,7 @@ export {
   TriggerTiming,
   TableI,
   ColumnI,
-  ForeignKeyI,
+  foreign_keyI,
   IndexI,
   TriggerI,
   ColumnDefaultI,

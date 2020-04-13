@@ -28,7 +28,7 @@ const eventsTable: TableI = {
     {
       name: "event_pkey",
       on: [{ column: "id" }],
-      primaryKey: true,
+      primary_key: true,
       unique: true,
     },
   ],
@@ -42,7 +42,7 @@ const peopleTable: TableI = {
     { name: "attending_event", type: "uuid" },
     { name: "updated_at", type: "timestamptz" },
   ],
-  foreignKeys: [
+  foreign_keys: [
     {
       on: ["attending_event"],
       references: {
@@ -96,14 +96,14 @@ describe("idempotency", () => {
   });
 
   test("can install a trait", async () => {
-    const tableWithTraitWithoutForeignKey = Object.assign({}, peopleTable, {
+    const tableWithTraitWithoutforeign_key = Object.assign({}, peopleTable, {
       implements: [{ trait: "nameable" }],
-      foreignKeys: [],
+      foreign_keys: [],
     });
     const newOperationList = await checkIdempotency(
       ModuleProvider,
       {
-        tables: [tableWithTraitWithoutForeignKey],
+        tables: [tableWithTraitWithoutforeign_key],
         traits: [hasFirstNameTrait],
       },
       "",
@@ -112,15 +112,15 @@ describe("idempotency", () => {
   });
 
   test("can install a trait with a trigger", async () => {
-    const tableWithTraitWithoutForeignKey = Object.assign({}, peopleTable, {
+    const tableWithTraitWithoutforeign_key = Object.assign({}, peopleTable, {
       implements: [{ trait: "auto_update" }],
-      foreignKeys: [],
+      foreign_keys: [],
     });
 
     const newOperationList = await checkIdempotency(
       ModuleProvider,
       {
-        tables: [tableWithTraitWithoutForeignKey],
+        tables: [tableWithTraitWithoutforeign_key],
         traits: [updatedTrait],
       },
       "",

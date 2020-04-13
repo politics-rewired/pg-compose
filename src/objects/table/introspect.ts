@@ -7,7 +7,7 @@ import {
   GetterI,
   TriggerI,
   TriggerTiming,
-  ForeignKeyI,
+  foreign_keyI,
 } from "./records";
 import { groupBy, sortBy } from "lodash";
 import { RunContextI } from "../../runners";
@@ -132,9 +132,9 @@ const introspectIndexes = async (
   return indexes.map(idx => ({
     name: idx.index_name,
     unique: idx.is_unique,
-    primaryKey: idx.is_primary,
+    primary_key: idx.is_primary,
     where: makeUndefinedIfNull(idx.where_clause),
-    primaryKeyConstraintName: makeUndefinedIfNull(
+    primary_keyConstraintName: makeUndefinedIfNull(
       idx.primary_key_constraint_name,
     ),
     on: idx.columns
@@ -286,11 +286,11 @@ interface PgFk {
   referenced_column_names: string[];
 }
 
-export const introspectForeignKeys = async (
+export const introspectforeign_keys = async (
   client: PoolClient,
   tableIdentifier: PgIdentifierI,
   context: RunContextI,
-): Promise<ForeignKeyI[]> => {
+): Promise<foreign_keyI[]> => {
   const result = await client.query(
     `
       SELECT
@@ -319,7 +319,7 @@ export const introspectForeignKeys = async (
 
   const rows: PgFk[] = result.rows;
 
-  const fks: ForeignKeyI[] = rows.map(fk => ({
+  const fks: foreign_keyI[] = rows.map(fk => ({
     name: fk.constraint_name,
     on: fk.constrained_column_names,
     references: {
@@ -336,12 +336,18 @@ export const introspectTable = async (
   name: PgIdentifierI,
   context: RunContextI,
 ): Promise<TableI> => {
-  const [columns, indexes, getters, triggers, foreignKeys] = await Promise.all([
+  const [
+    columns,
+    indexes,
+    getters,
+    triggers,
+    foreign_keys,
+  ] = await Promise.all([
     introspectColumns(client, name, context),
     introspectIndexes(client, name, context),
     introspectGetters(client, name, context),
     introspectTriggers(client, name, context),
-    introspectForeignKeys(client, name, context),
+    introspectforeign_keys(client, name, context),
   ]);
 
   const table: TableI = {
@@ -350,7 +356,7 @@ export const introspectTable = async (
     indexes,
     getters,
     triggers,
-    foreignKeys,
+    foreign_keys,
   };
 
   return table;

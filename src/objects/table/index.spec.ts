@@ -71,7 +71,7 @@ describe("after migration, the operation list should be empty", () => {
             name: "people_primary_key",
             on: [{ column: "id" }],
             unique: true,
-            primaryKey: true,
+            primary_key: true,
           },
         ],
       },
