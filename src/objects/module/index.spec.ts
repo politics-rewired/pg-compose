@@ -1,6 +1,7 @@
-import { TableI, TraitI } from "../table/records";
+import { TableI, TraitI, TableExtensionI } from "../table/records";
 import { checkIdempotency } from "../test-helpers";
 import { ModuleProvider } from "./index";
+import { ModuleI } from "./core";
 
 const eventsTable: TableI = {
   name: "events",
@@ -126,5 +127,60 @@ describe("idempotency", () => {
       "",
     );
     expect(newOperationList).toHaveLength(0);
+  });
+});
+
+describe("extension", () => {
+  test("extension is applied in a module", () => {
+    const baseTable: TableI = {
+      name: "people",
+      columns: [
+        {
+          name: "first_name",
+          type: "text",
+        },
+      ],
+    };
+
+    const extension: TableExtensionI = {
+      table: "people",
+      columns: [
+        {
+          name: "last_name",
+          type: "text",
+        },
+      ],
+    };
+
+    const moduleWithExtension: ModuleI = {
+      tables: [baseTable],
+      extensions: [extension],
+    };
+
+    const moduleWithoutExtension: ModuleI = {
+      tables: [
+        {
+          name: "people",
+          columns: [
+            {
+              name: "first_name",
+              type: "text",
+              nullable: true,
+            },
+            {
+              name: "last_name",
+              type: "text",
+              nullable: true,
+            },
+          ],
+        },
+      ],
+    };
+
+    const moduleOperationList = ModuleProvider.reconcile(
+      moduleWithExtension,
+      moduleWithoutExtension,
+    );
+    expect(moduleOperationList).toHaveLength(0);
   });
 });

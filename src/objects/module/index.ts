@@ -24,14 +24,24 @@ const reconcile = (
   const shouldDropTables = false;
 
   const maybeExpandTable = (table: TableI): TableI => {
+    let nextTable = table;
+
+    // Apply table extensions
+    const extensionsForTable = (desired.extensions || []).filter(
+      ext => ext.table === table.name,
+    );
+
+    for (const extension of extensionsForTable) {
+      nextTable = extendTable(nextTable, extension);
+    }
+
     if (table.implements === undefined) {
-      return table;
+      return nextTable;
     }
 
     const implementedTraits = table.implements;
 
-    let nextTable = table;
-
+    // Implement all traits
     for (const traitImplementation of implementedTraits) {
       const trait = (desired.traits || []).find(
         t => t.name === traitImplementation.trait,

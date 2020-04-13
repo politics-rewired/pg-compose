@@ -215,7 +215,7 @@ const Table = Record({
     },
   );
 
-const TableExtension = Partial({
+const TableExtensionSpec = Partial({
   columns: Array(Column),
   indexes: Array(Index),
   triggers: Array(Trigger),
@@ -223,6 +223,10 @@ const TableExtension = Partial({
   uniques: Array(UniqueConstraint),
   foreign_keys: Array(foreign_key),
 });
+
+const TableExtension = Record({
+  table: PgIdentifier,
+}).And(TableExtensionSpec);
 
 const TraitRequirement = Partial({
   columns: Array(Column),
@@ -234,7 +238,7 @@ const Trait = Record({
   requires: TraitRequirement,
 }).And(
   Partial({
-    provides: TableExtension,
+    provides: TableExtensionSpec,
   }),
 );
 
@@ -243,6 +247,7 @@ interface ColumnI extends Static<typeof Column> {}
 interface foreign_keyI extends Static<typeof foreign_key> {}
 interface IndexI extends Static<typeof Index> {}
 interface TableExtensionI extends Static<typeof TableExtension> {}
+interface TableExtensionSpecI extends Static<typeof TableExtensionSpec> {}
 interface TraitImplementationI extends Static<typeof TraitImplementation> {}
 interface TraitRequirementI extends Static<typeof TraitRequirement> {}
 interface TraitI extends Static<typeof Trait> {}
@@ -273,6 +278,7 @@ export {
   TriggerI,
   ColumnDefaultI,
   TableExtensionI,
+  TableExtensionSpecI,
   TraitI,
   GetterI,
   GetterVolatilityI,

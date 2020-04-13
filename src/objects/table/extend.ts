@@ -1,6 +1,6 @@
 import {
   TableI,
-  TableExtensionI,
+  TableExtensionSpecI,
   TraitImplementationI,
   TraitRequirementI,
   TriggerI,
@@ -52,9 +52,9 @@ const propsWithTransformers: [string, Transformer<any>][] = [
 
 export const extendTable = (
   table: TableI,
-  extension: TableExtensionI,
-  traitImplementation: TraitImplementationI,
-  traitRequirement: TraitRequirementI,
+  extension: TableExtensionSpecI,
+  traitImplementation?: TraitImplementationI,
+  traitRequirement?: TraitRequirementI,
 ): TableI => {
   const result = Object.assign({}, table);
 

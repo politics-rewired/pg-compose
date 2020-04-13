@@ -1,7 +1,7 @@
 import { Loader } from "../core";
 import { ModuleI } from "../../objects/module/core";
 import { Record, Literal, Static } from "runtypes";
-import { TableI, TraitI } from "../../objects/table/records";
+import { TableI, TraitI, TableExtensionI } from "../../objects/table/records";
 import * as glob from "glob";
 import { parseAllDocuments } from "yaml";
 import { promises as fs } from "fs";
@@ -76,6 +76,10 @@ const YamlTest = Record({
   kind: Literal("Test"),
 });
 
+const YamlExtension = Record({
+  kind: Literal("TableExtension"),
+});
+
 interface YamlTableI extends Static<typeof YamlTable> {
   [key: string]: any;
 }
@@ -85,6 +89,10 @@ interface YamlTraitI extends Static<typeof YamlTrait> {
 }
 
 interface YamlTestI extends Static<typeof YamlTest> {
+  [key: string]: any;
+}
+
+interface YamlExtensionI extends Static<typeof YamlExtension> {
   [key: string]: any;
 }
 
@@ -114,6 +122,13 @@ export const toTest = (yaml: YamlTestI): TestI => ({
   name: yaml.name,
   setup: yaml.setup,
   assertions: yaml.assertions,
+});
+
+export const toExtension = (yaml: YamlExtensionI): TableExtensionI => ({
+  table: yaml.table,
+  columns: flattenKeyToProp(yaml.columns || {}, "name"),
+  indexes: flattenKeyToProp(yaml.indexes || {}, "name"),
+  triggers: flattenKeyToProp(yaml.triggers || {}, "timing"),
 });
 
 const addOrder = <T>(arr: T[]): (T & { order: number })[] =>
