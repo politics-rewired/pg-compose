@@ -21,7 +21,14 @@ export const checkIdempotency = async <ObjectType, OperationType>(
     await client.query(statement);
   }
 
-  const current = await object.introspect(client, identifier, context);
+  let current: ObjectType | undefined;
+
+  if (object.type === "single") {
+    current = await object.introspect(client, identifier, context);
+  } else {
+    const allOptions = await object.introspectMany(client, context);
+    current = allOptions.find(opt => object.identityFn(desired, opt));
+  }
 
   await client.query("rollback");
   return object.reconcile(desired, current);
@@ -54,7 +61,14 @@ export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
     await client.query(statement);
   }
 
-  const current = await object.introspect(client, identifier, context);
+  let current: ObjectType | undefined;
+
+  if (object.type === "single") {
+    current = await object.introspect(client, identifier, context);
+  } else {
+    const allOptions = await object.introspectMany(client, context);
+    current = allOptions.find(opt => object.identityFn(toTest, opt));
+  }
 
   await client.query("rollback");
   return object.reconcile(toTest, current);
@@ -74,7 +88,7 @@ export const checkIdempotencyAfterTransitions = async <
   const context: RunContextI = { schema: "public", client };
 
   let runs = 0;
-  let current = undefined;
+  let current: ObjectType | undefined = undefined;
   let desired = desireds[0];
 
   while (runs < desireds.length) {
@@ -84,10 +98,17 @@ export const checkIdempotencyAfterTransitions = async <
     const statements = operationList.map(o => object.toStatement(context)(o));
 
     for (const statement of statements) {
+      console.log("statement", statement);
       await client.query(statement);
     }
 
-    current = await object.introspect(client, identifier, context);
+    if (object.type === "single") {
+      current = await object.introspect(client, identifier, context);
+    } else {
+      const allOptions = await object.introspectMany(client, context);
+      current = allOptions.find(opt => object.identityFn(desired, opt));
+    }
+
     runs++;
   }
 

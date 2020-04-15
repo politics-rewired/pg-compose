@@ -1,6 +1,7 @@
 import { RunContextI } from "../../runners";
 import { ModuleI } from "./core";
 import { TableProvider } from "../table";
+import { FunctionProvider } from "../functions";
 import { PoolClient } from "pg";
 import { PgIdentifierI } from "../core";
 
@@ -31,5 +32,7 @@ export const introspectModule = async (
     ),
   );
 
-  return { tables };
+  const functions = await FunctionProvider.introspectMany(client, context);
+
+  return { tables, functions };
 };

@@ -11,19 +11,38 @@ export const PgIdentifier = String.withConstraint(
 
 export type PgIdentifierI = Static<typeof PgIdentifier>;
 
-export interface ObjectProvider<ObjectType, OperationType> {
+interface ObjectProviderCore<ObjectType, OperationType> {
   record: Runtype<ObjectType>;
-  introspect: (
-    client: PoolClient,
-    identifier: PgIdentifierI,
-    context: RunContextI,
-  ) => Promise<ObjectType>;
   reconcile: (
     desired: ObjectType,
     current: ObjectType | undefined,
   ) => OperationType[];
   toStatement: (context: RunContextI) => (operation: OperationType) => string;
+  identityFn: IdentityFunction<ObjectType>;
 }
+
+export interface SingleObjectProvider<ObjectType, OperationType>
+  extends ObjectProviderCore<ObjectType, OperationType> {
+  type: "single";
+  introspect: (
+    client: PoolClient,
+    identifier: PgIdentifierI,
+    context: RunContextI,
+  ) => Promise<ObjectType>;
+}
+
+export interface ManyObjectProvider<ObjectType, OperationType>
+  extends ObjectProviderCore<ObjectType, OperationType> {
+  type: "many";
+  introspectMany: (
+    client: PoolClient,
+    context: RunContextI,
+  ) => Promise<ObjectType[]>;
+}
+
+export type ObjectProvider<ObjectType, OperationType> =
+  | SingleObjectProvider<ObjectType, OperationType>
+  | ManyObjectProvider<ObjectType, OperationType>;
 
 interface NameableObject {
   name: string;
@@ -31,6 +50,11 @@ interface NameableObject {
 }
 
 type IdentityFunction<T> = (desired: T, current: T) => boolean;
+
+export const identityFunctionForNameableObject: IdentityFunction<NameableObject> = (
+  desired: NameableObject,
+  current: NameableObject,
+) => desired.name === current.name || desired.previous_name === current.name;
 
 export const createOperationsForNameableObject = <ObjectType, OperationType>(
   desiredObjects: (NameableObject & ObjectType)[] | undefined,

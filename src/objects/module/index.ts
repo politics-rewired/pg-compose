@@ -89,4 +89,6 @@ export const ModuleProvider: ObjectProvider<ModuleI, ModuleOperationType> = {
   introspect: introspectModule,
   reconcile,
   toStatement: TableProvider.toStatement,
+  type: "single",
+  identityFn: (_a, _b) => true,
 };

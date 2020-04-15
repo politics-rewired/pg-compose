@@ -47,6 +47,8 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     TableRecord.check(table);
   }
 
+  console.log(tables);
+
   for (const trait of traits) {
     TraitRecord.check(trait);
   }
@@ -128,6 +130,7 @@ export const toExtension = (yaml: YamlExtensionI): TableExtensionI => ({
   table: yaml.table,
   columns: flattenKeyToProp(yaml.columns || {}, "name"),
   indexes: flattenKeyToProp(yaml.indexes || {}, "name"),
+  foreign_keys: flattenKeyToProp(yaml.foreign_keys || {}, "name"),
   triggers: flattenKeyToProp(yaml.triggers || {}, "timing"),
 });
 

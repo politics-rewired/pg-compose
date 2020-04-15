@@ -196,7 +196,7 @@ CREATE TRIGGER ${triggerName}
   ${op.trigger.timing.replace("_", " ")}
   ON ${makeTableIdentifier(context.schema, op.table.name)}
   FOR EACH ROW ${op.trigger.when ? "WHEN ${op.trigger.when" : ""}
-  EXECUTE FUNCTION ${functionName}();
+  EXECUTE FUNCTION "${context.schema}".${functionName}();
         `;
 
         return `${createOrReplaceFunctionStatement}\n${createTriggerStatement}`;

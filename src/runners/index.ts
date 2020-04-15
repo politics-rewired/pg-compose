@@ -56,7 +56,7 @@ export const directRunner: Runner = async (
       await context.client.query(statement);
     } catch (ex) {
       console.error(`Error running operation ${JSON.stringify(op)}: `, ex);
-      process.exit(1);
+      // process.exit(1);
     }
   }
 };

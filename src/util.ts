@@ -39,3 +39,6 @@ export const flattenKeyToProp = <T, U>(
     }
   });
 };
+
+export const addOneIndexedOrder = <T>(arr: T[]): (T & { order: number })[] =>
+  arr.map((t, idx) => Object.assign({}, t, { order: idx + 1 }));
