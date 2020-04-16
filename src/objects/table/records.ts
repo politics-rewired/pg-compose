@@ -56,7 +56,7 @@ const Column = Record({
     { name: "Column default must be numeric if its type is numeric" },
   );
 
-const foreign_key = Record({
+const ForeignKey = Record({
   on: Array(PgIdentifier),
   references: Record({
     table: PgIdentifier,
@@ -175,7 +175,7 @@ const Getter = GetterContract.And(
 const TableSpec = {
   previous_name: PgIdentifier,
   indexes: Array(Index),
-  foreign_keys: Array(foreign_key),
+  foreign_keys: Array(ForeignKey),
   checks: Array(CheckConstraint),
   uniques: Array(UniqueConstraint),
   implements: Array(TraitImplementation),
@@ -221,7 +221,7 @@ const TableExtensionSpec = Partial({
   triggers: Array(Trigger),
   checks: Array(CheckConstraint),
   uniques: Array(UniqueConstraint),
-  foreign_keys: Array(foreign_key),
+  foreign_keys: Array(ForeignKey),
 });
 
 const TableExtension = Record({
@@ -244,7 +244,7 @@ const Trait = Record({
 
 interface TableI extends Static<typeof Table> {}
 interface ColumnI extends Static<typeof Column> {}
-interface foreign_keyI extends Static<typeof foreign_key> {}
+interface ForeignKeyI extends Static<typeof ForeignKey> {}
 interface IndexI extends Static<typeof Index> {}
 interface TableExtensionI extends Static<typeof TableExtension> {}
 interface TableExtensionSpecI extends Static<typeof TableExtensionSpec> {}
@@ -263,7 +263,7 @@ export {
   TraitImplementation,
   TableExtension,
   Column,
-  foreign_key,
+  ForeignKey,
   Index,
   Getter,
   ColumnFunctionDefault,
@@ -273,7 +273,7 @@ export {
   TriggerTiming,
   TableI,
   ColumnI,
-  foreign_keyI,
+  ForeignKeyI,
   IndexI,
   TriggerI,
   ColumnDefaultI,

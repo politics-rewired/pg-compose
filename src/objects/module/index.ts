@@ -1,21 +1,29 @@
-// import { match, Record, Boolean } from "runtypes";
+import { match } from "runtypes";
 import { TableProvider } from "../table";
-import { createOperationsForNameableObject } from "../core";
+import {
+  createOperationsForNameableObject,
+  createOperationsForObjectWithIdentityFunction,
+} from "../core";
 import { introspectModule } from "./introspect";
-import { TableOperationType } from "../table/reconcile";
+import { AllTableOperation, AllTableOperationType } from "../table/reconcile";
 import { TableI } from "../table/records";
 import { ModuleI, ModuleRecord } from "./core";
-import { ObjectProvider } from "..";
+import { SingleObjectProvider } from "../core";
 import { enforceTrait } from "../table/trait";
 import { extendTable } from "../table/extend";
+import {
+  FunctionProvider,
+  FunctionOperationType,
+  FunctionOperation,
+} from "../functions";
+import { RunContextI } from "../../runners";
 
-// const ModuleOperation = Union(TableOperation);
-export type ModuleOperationType = TableOperationType;
+export type ModuleOperationType = AllTableOperationType | FunctionOperationType;
 
 const reconcile = (
   desired: ModuleI,
   current: ModuleI | undefined,
-): TableOperationType[] => {
+): ModuleOperationType[] => {
   // Install tables
   // const shouldDropTables = match(
   //   [Boolean, x => x],
@@ -81,14 +89,31 @@ const reconcile = (
     { dropObjects: shouldDropTables },
   );
 
-  return tableOperations;
+  const functionOperations = createOperationsForObjectWithIdentityFunction(
+    desired.functions,
+    current === undefined ? [] : current.functions,
+    FunctionProvider.reconcile,
+    FunctionProvider.identityFn,
+    { dropObjects: true },
+  );
+
+  return (tableOperations as ModuleOperationType[]).concat(
+    functionOperations as ModuleOperationType[],
+  );
 };
 
-export const ModuleProvider: ObjectProvider<ModuleI, ModuleOperationType> = {
+export const ModuleProvider: SingleObjectProvider<
+  ModuleI,
+  ModuleOperationType
+> = {
   record: ModuleRecord,
   introspect: introspectModule,
   reconcile,
-  toStatement: TableProvider.toStatement,
+  toStatement: (context: RunContextI) =>
+    match(
+      [AllTableOperation, TableProvider.toStatement(context)],
+      [FunctionOperation, FunctionProvider.toStatement(context)],
+    ),
   type: "single",
-  identityFn: (_a, _b) => true,
+  identityFn: (_a: ModuleI, _b: ModuleI) => true,
 };

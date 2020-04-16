@@ -1,5 +1,5 @@
 import { Trait, Table, TableI } from "./records";
-import { reconcileTables, TableOperationType } from "./reconcile";
+import { reconcileTables, AllTableOperationType } from "./reconcile";
 import {
   SingleObjectProvider,
   identityFunctionForNameableObject,
@@ -7,7 +7,10 @@ import {
 import { makeToStatement } from "./statements";
 import { introspectTable } from "./introspect";
 
-export const TableProvider: SingleObjectProvider<TableI, TableOperationType> = {
+export const TableProvider: SingleObjectProvider<
+  TableI,
+  AllTableOperationType
+> = {
   record: Table,
   introspect: introspectTable,
   reconcile: reconcileTables,

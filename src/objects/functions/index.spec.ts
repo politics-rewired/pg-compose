@@ -88,7 +88,7 @@ describe("idempotency", () => {
   });
 });
 
-describe("idempotency after transitions", async () => {
+describe("idempotency after transitions", () => {
   const f: FunctionI = {
     name: "say_hi",
     arguments: [

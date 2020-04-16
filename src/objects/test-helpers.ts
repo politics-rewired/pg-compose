@@ -15,7 +15,9 @@ export const checkIdempotency = async <ObjectType, OperationType>(
   const context: RunContextI = { schema: "public", client };
 
   const operationList = object.reconcile(desired, undefined);
-  const statements = operationList.map(o => object.toStatement(context)(o));
+  const statements = operationList.map(o => {
+    return object.toStatement(context)(o);
+  });
 
   for (const statement of statements) {
     await client.query(statement);
@@ -55,7 +57,10 @@ export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
   }
 
   const operationList = object.reconcile(toTest, undefined);
-  const statements = operationList.map(o => object.toStatement(context)(o));
+  const statements = operationList.map(o => {
+    const statement = object.toStatement(context)(o);
+    return statement;
+  });
 
   for (const statement of statements) {
     await client.query(statement);
@@ -98,7 +103,6 @@ export const checkIdempotencyAfterTransitions = async <
     const statements = operationList.map(o => object.toStatement(context)(o));
 
     for (const statement of statements) {
-      console.log("statement", statement);
       await client.query(statement);
     }
 

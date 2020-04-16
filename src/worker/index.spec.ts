@@ -28,6 +28,7 @@ const makeTaskList = (client: PoolClient, cryptr: Cryptr): TaskList => ({
 
 describe("secret management", () => {
   beforeAll(async () => {
+    await pool.query("drop schema if exists graphile_secrets cascade;");
     await migrate(pool);
   });
 
@@ -127,7 +128,38 @@ describe("secret management", () => {
     await client.release();
   });
 
-  // test("setSecret + getSecret isomorphism w/ job", async () => {});
+  test("setSecret + getSecret isomorphism w/ job", async () => {
+    const cryptr = new Cryptr(faker.random.alphaNumeric());
+    const client = await pool.connect();
+    await client.query("begin");
+    await clearJobsAndSchedules(client);
 
-  // test("setSecret + getSecret isomorphism w/o job", async () => {});
+    const ref = faker.random.alphaNumeric();
+    const unencryptedSecret = faker.random.alphaNumeric();
+
+    await setSecret(client, ref, unencryptedSecret);
+
+    const taskList = makeTaskList(client, cryptr);
+
+    // run the worker job via runTaskListOnce
+    await runTaskListOnce({ pgPool: pool }, taskList, client);
+
+    const resolvedUnencryptedSecret = await getSecret(client, cryptr, ref);
+    expect(resolvedUnencryptedSecret).toEqual(unencryptedSecret);
+  });
+
+  test("setSecret + getSecret isomorphism w/o job", async () => {
+    const cryptr = new Cryptr(faker.random.alphaNumeric());
+    const client = await pool.connect();
+    await client.query("begin");
+    await clearJobsAndSchedules(client);
+
+    const ref = faker.random.alphaNumeric();
+    const unencryptedSecret = faker.random.alphaNumeric();
+
+    await setSecret(client, ref, unencryptedSecret);
+
+    const resolvedUnencryptedSecret = await getSecret(client, cryptr, ref);
+    expect(resolvedUnencryptedSecret).toEqual(unencryptedSecret);
+  });
 });

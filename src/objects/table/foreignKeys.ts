@@ -1,55 +1,55 @@
-import { foreign_key, foreign_keyI, Table, TableI } from "./records";
+import { ForeignKey, ForeignKeyI, Table, TableI } from "./records";
 import { Tuple, Literal, Record, Union, Static, match } from "runtypes";
 
-export enum foreign_keyOpCodes {
-  Createforeign_key = "create_foreign_key",
-  Dropforeign_key = "drop_foreign_key",
+export enum ForeignKeyOpCodes {
+  CreateForeignKey = "create_foreign_key",
+  DropForeignKey = "drop_foreign_key",
 }
 
-export const Createforeign_keyOperation = Record({
-  code: Literal(foreign_keyOpCodes.Createforeign_key),
-  foreign_key: foreign_key,
+export const CreateForeignKeyOperation = Record({
+  code: Literal(ForeignKeyOpCodes.CreateForeignKey),
+  foreign_key: ForeignKey,
   table: Table,
 });
 
-export const Dropforeign_keyOperation = Record({
-  code: Literal(foreign_keyOpCodes.Dropforeign_key),
-  foreign_key: foreign_key,
+export const DropForeignKeyOperation = Record({
+  code: Literal(ForeignKeyOpCodes.DropForeignKey),
+  foreign_key: ForeignKey,
   table: Table,
 });
 
-export const foreign_keyOperation = Union(
-  Createforeign_keyOperation,
-  Dropforeign_keyOperation,
+export const ForeignKeyOperation = Union(
+  CreateForeignKeyOperation,
+  DropForeignKeyOperation,
 );
 
-export type foreign_keyOperationType = Static<typeof foreign_keyOperation>;
+export type ForeignKeyOperationType = Static<typeof ForeignKeyOperation>;
 
-const Createforeign_keyInput = Tuple(foreign_key, Literal(undefined));
-const Dropforeign_keyInput = Tuple(Literal(undefined), foreign_key);
+const CreateForeignKeyInput = Tuple(ForeignKey, Literal(undefined));
+const DropForeignKeyInput = Tuple(Literal(undefined), ForeignKey);
 
-const Reconcileforeign_keysInput = Union(
-  Createforeign_keyInput,
-  Dropforeign_keyInput,
+const ReconcileForeignKeysInput = Union(
+  CreateForeignKeyInput,
+  DropForeignKeyInput,
 );
 
 const matchFn = (desiredTable: TableI) =>
   match(
     [
-      Createforeign_keyInput,
+      CreateForeignKeyInput,
       ([desired]) => [
         {
-          code: foreign_keyOpCodes.Createforeign_key,
+          code: ForeignKeyOpCodes.CreateForeignKey,
           foreign_key: desired,
           table: desiredTable,
         },
       ],
     ],
     [
-      Dropforeign_keyInput,
+      DropForeignKeyInput,
       ([_, current]) => [
         {
-          code: foreign_keyOpCodes.Dropforeign_key,
+          code: ForeignKeyOpCodes.DropForeignKey,
           foreign_key: current,
           table: desiredTable,
         },
@@ -57,13 +57,13 @@ const matchFn = (desiredTable: TableI) =>
     ],
   );
 
-export const makeReconcileforeign_keys = (desiredTable: TableI) => (
-  desired: foreign_keyI | undefined,
-  current: foreign_keyI | undefined,
-): foreign_keyOperationType[] => {
+export const makeReconcileForeignKeys = (desiredTable: TableI) => (
+  desired: ForeignKeyI | undefined,
+  current: ForeignKeyI | undefined,
+): ForeignKeyOperationType[] => {
   const input = [desired, current];
 
-  if (Reconcileforeign_keysInput.guard(input)) {
+  if (ReconcileForeignKeysInput.guard(input)) {
     return matchFn(desiredTable)(input);
   }
 

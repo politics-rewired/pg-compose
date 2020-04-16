@@ -9,6 +9,7 @@ import { flatMap } from "lodash";
 import { flattenKeyToProp } from "../../util";
 import { TestI, TestRecord } from "../../objects/test";
 import { TableRecord, TraitRecord } from "../../objects/table";
+import { FunctionRecord, FunctionI } from "../../objects/functions";
 
 interface YamlLoaderOpts {
   include: string;
@@ -43,11 +44,13 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     .map(t => (YamlTest.guard(t) ? toTest(t) : undefined))
     .filter(IsNotUndefined);
 
+  const functions = allYamlObjects
+    .map(f => (YamlFunction.guard(f) ? toFunction(f) : undefined))
+    .filter(IsNotUndefined);
+
   for (const table of tables) {
     TableRecord.check(table);
   }
-
-  console.log(tables);
 
   for (const trait of traits) {
     TraitRecord.check(trait);
@@ -57,10 +60,15 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     TestRecord.check(test);
   }
 
+  for (const func of functions) {
+    FunctionRecord.check(func);
+  }
+
   return {
     tables,
     traits,
     tests,
+    functions,
   };
 };
 
@@ -82,6 +90,10 @@ const YamlExtension = Record({
   kind: Literal("TableExtension"),
 });
 
+const YamlFunction = Record({
+  kind: Literal("Function"),
+});
+
 interface YamlTableI extends Static<typeof YamlTable> {
   [key: string]: any;
 }
@@ -95,6 +107,10 @@ interface YamlTestI extends Static<typeof YamlTest> {
 }
 
 interface YamlExtensionI extends Static<typeof YamlExtension> {
+  [key: string]: any;
+}
+
+interface YamlFunctionI extends Static<typeof YamlFunction> {
   [key: string]: any;
 }
 
@@ -132,6 +148,16 @@ export const toExtension = (yaml: YamlExtensionI): TableExtensionI => ({
   indexes: flattenKeyToProp(yaml.indexes || {}, "name"),
   foreign_keys: flattenKeyToProp(yaml.foreign_keys || {}, "name"),
   triggers: flattenKeyToProp(yaml.triggers || {}, "timing"),
+});
+
+export const toFunction = (yaml: YamlFunctionI): FunctionI => ({
+  name: yaml.name,
+  language: yaml.language,
+  security: yaml.security,
+  arguments: yaml.arguments,
+  returns: yaml.returns,
+  volatility: yaml.volatility,
+  body: yaml.body,
 });
 
 const addOrder = <T>(arr: T[]): (T & { order: number })[] =>

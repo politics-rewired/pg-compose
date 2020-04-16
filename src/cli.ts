@@ -2,7 +2,6 @@ import * as yargs from "yargs";
 import {
   fileRunner,
   directRunner,
-  interactiveRunner,
   Runner,
   RunContextI,
   ToFileRunContextI,
@@ -31,11 +30,7 @@ const install = async (argv: CliOpts) => {
   });
 
   const runner: Runner =
-    argv.out === undefined
-      ? false
-        ? directRunner
-        : interactiveRunner
-      : fileRunner;
+    argv.out === undefined ? (true ? directRunner : directRunner) : fileRunner;
 
   const context: RunContextI | ToFileRunContextI = {
     schema: argv.schema,

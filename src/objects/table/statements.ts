@@ -21,9 +21,9 @@ import {
   ReorderTriggerOperation,
 } from "./triggers";
 import {
-  foreign_keyOperation,
-  Createforeign_keyOperation,
-  Dropforeign_keyOperation,
+  ForeignKeyOperation,
+  CreateForeignKeyOperation,
+  DropForeignKeyOperation,
 } from "./foreignKeys";
 import {
   CreateTableOperation,
@@ -34,8 +34,8 @@ import { match, Unknown } from "runtypes";
 import { PgIdentifierI } from "../core";
 import { RunContextI } from "../../runners";
 import {
-  ColumnDefaultI,
   ColumnFunctionDefault,
+  ColumnDefaultI,
   ColumnLiteralDefault,
 } from "./records";
 
@@ -254,7 +254,7 @@ CREATE TRIGGER ${triggerName}
 export const makeforeign_keyToStatement = (context: RunContextI) =>
   match(
     [
-      Createforeign_keyOperation,
+      CreateForeignKeyOperation,
       op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
@@ -267,7 +267,7 @@ export const makeforeign_keyToStatement = (context: RunContextI) =>
         )} (${op.foreign_key.references.columns.join(", ")});`,
     ],
     [
-      Dropforeign_keyOperation,
+      DropForeignKeyOperation,
       op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
@@ -282,7 +282,7 @@ export const makeToStatement = (context: RunContextI) =>
     [ColumnOperation, makeColumnToStatement(context)],
     [IndexOperation, makeIndexToStatement(context)],
     [TriggerOperation, makeTriggerToStatement(context)],
-    [foreign_keyOperation, makeforeign_keyToStatement(context)],
+    [ForeignKeyOperation, makeforeign_keyToStatement(context)],
     [
       Unknown,
       op => {

@@ -65,22 +65,40 @@ export const encryptSecret = async (
   cryptr: Cryptr,
   secretRef: string,
 ): Promise<void> => {
-  const { rows } = await client.query<GraphileUnencryptedSecrets>(
-    "select * from graphile_secrets.unencrypted_secrets where ref = $1",
+  const { rows: unencryptedMatches } = await client.query<
+    GraphileUnencryptedSecrets
+  >("select * from graphile_secrets.unencrypted_secrets where ref = $1", [
+    secretRef,
+  ]);
+
+  const { rows: encryptedMatches } = await client.query<GraphileSecrets>(
+    "select * from graphile_secrets.secrets where ref = $1 and encrypted_secret is not null",
     [secretRef],
   );
 
-  const encryptedSecret = cryptr.encrypt(rows[0].unencrypted_secret);
+  if (encryptedMatches.length > 0) {
+    return;
+  }
 
-  await client.query(
-    "update graphile_secrets.secrets set encrypted_secret = $1 where ref = $2",
-    [encryptedSecret, secretRef],
-  );
+  if (unencryptedMatches.length > 0) {
+    const encryptedSecret = cryptr.encrypt(
+      unencryptedMatches[0].unencrypted_secret,
+    );
 
-  await client.query(
-    "delete from graphile_secrets.unencrypted_secrets where ref = $1",
-    [secretRef],
-  );
+    await client.query(
+      "update graphile_secrets.secrets set encrypted_secret = $1 where ref = $2",
+      [encryptedSecret, secretRef],
+    );
+
+    await client.query(
+      "delete from graphile_secrets.unencrypted_secrets where ref = $1",
+      [secretRef],
+    );
+
+    return;
+  }
+
+  throw new Error(`No secret found with ref ${secretRef}`);
 };
 
 export const getSecret = async (
@@ -108,11 +126,9 @@ export const setSecret = async (
   client: PoolClient,
   secretRef: string,
   unencryptedSecret: string,
-): Promise<string> => {
-  const { rows } = await client.query<{ ref: string }>(
-    "select * from graphile_secrets.set_secret($1, $2)",
+): Promise<void> => {
+  await client.query<{ ref: string }>(
+    "select graphile_secrets.set_secret($1, $2)",
     [secretRef, unencryptedSecret],
   );
-
-  return rows[0].ref;
 };

@@ -5,18 +5,31 @@ import {
   Table,
   IndexI,
   TriggerI,
-  foreign_keyI,
+  ForeignKeyI,
 } from "./records";
-import { ColumnOperationType, makeReconcileColumns } from "./columns";
+import {
+  ColumnOperationType,
+  makeReconcileColumns,
+  ColumnOperation,
+} from "./columns";
 import {
   createOperationsForNameableObject,
   createOperationsForObjectWithIdentityFunction,
 } from "../core";
-import { IndexOperationType, makeReconcileIndexes } from "./tableIndex";
-import { TriggerOperationType, makeReconcileTriggers } from "./triggers";
 import {
-  foreign_keyOperationType,
-  makeReconcileforeign_keys,
+  IndexOperationType,
+  makeReconcileIndexes,
+  IndexOperation,
+} from "./tableIndex";
+import {
+  TriggerOperationType,
+  makeReconcileTriggers,
+  TriggerOperation,
+} from "./triggers";
+import {
+  ForeignKeyOperationType,
+  makeReconcileForeignKeys,
+  ForeignKeyOperation,
 } from "./foreignKeys";
 import { isEqual, sortBy } from "lodash";
 
@@ -43,18 +56,21 @@ export const RenameTableOperation = Record({
 
 export const TableOperation = Union(CreateTableOperation, RenameTableOperation);
 
-export type TableOperationType =
-  | Static<typeof TableOperation>
-  | ColumnOperationType
-  | IndexOperationType
-  | TriggerOperationType
-  | foreign_keyOperationType;
+export const AllTableOperation = Union(
+  TableOperation,
+  ColumnOperation,
+  IndexOperation,
+  TriggerOperation,
+  ForeignKeyOperation,
+);
+
+export type AllTableOperationType = Static<typeof AllTableOperation>;
 
 export const reconcileTables = (
   desired: TableI,
   current: TableI | undefined,
-): TableOperationType[] => {
-  const operations: TableOperationType[] = [];
+): AllTableOperationType[] => {
+  const operations: AllTableOperationType[] = [];
 
   if (current === undefined) {
     // Create table
@@ -102,7 +118,7 @@ export const reconcileTables = (
   );
 
   // Accumulate foreign key reconciliations
-  const fkIdentityFn = (desiredFk: foreign_keyI, currentFk: foreign_keyI) =>
+  const fkIdentityFn = (desiredFk: ForeignKeyI, currentFk: ForeignKeyI) =>
     isEqual(
       sortBy(desiredFk.on, c => c),
       sortBy(currentFk.on, c => c),
@@ -113,13 +129,13 @@ export const reconcileTables = (
       sortBy(currentFk.references.columns, c => c),
     );
 
-  const foreign_keyOperations = createOperationsForObjectWithIdentityFunction<
-    foreign_keyI,
-    foreign_keyOperationType
+  const foreignKeyOperations = createOperationsForObjectWithIdentityFunction<
+    ForeignKeyI,
+    ForeignKeyOperationType
   >(
     desired.foreign_keys,
     current === undefined ? [] : current?.foreign_keys,
-    makeReconcileforeign_keys(desired),
+    makeReconcileForeignKeys(desired),
     fkIdentityFn,
   );
 
@@ -127,5 +143,5 @@ export const reconcileTables = (
     .concat(columnOperations)
     .concat(indexOperations)
     .concat(triggerOperations)
-    .concat(foreign_keyOperations);
+    .concat(foreignKeyOperations);
 };

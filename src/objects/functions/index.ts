@@ -167,7 +167,7 @@ const AlterFunctionSecurityOperation = Record({
   func: FunctionRecord,
 });
 
-const FunctionOperation = Union(
+export const FunctionOperation = Union(
   CreateFunctionOperation,
   ReplaceFunctionOperation,
   DropFunctionOperation,
@@ -176,7 +176,7 @@ const FunctionOperation = Union(
   AlterFunctionSecurityOperation,
 );
 
-type FunctionOperationType = Static<typeof FunctionOperation>;
+export type FunctionOperationType = Static<typeof FunctionOperation>;
 
 const reconcile = (
   desired: FunctionI | undefined,
@@ -274,7 +274,7 @@ const toStatement = (context: RunContextI) =>
           op.func.body
         } $$ language ${op.func.language} ${op.func.volatility} SECURITY ${
           op.func.security
-        }`,
+        } SET search_path = "${context.schema}"`,
     ],
     [
       ReplaceFunctionOperation,
@@ -287,7 +287,7 @@ const toStatement = (context: RunContextI) =>
           op.func.body
         } $$ language ${op.func.language} ${op.func.volatility} SECURITY ${
           op.func.security
-        }`,
+        } SET search_path = "${context.schema}"`,
     ],
     [
       DropFunctionOperation,

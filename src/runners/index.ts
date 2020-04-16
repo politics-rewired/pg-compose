@@ -3,8 +3,8 @@ import { PgIdentifier } from "../objects/core";
 import { ModuleOperationType } from "../objects/module";
 import { PoolClient } from "pg";
 import { promises as fs } from "fs";
-import { render, Box } from "ink";
-import { createElement as h } from "react";
+// import { render, Box } from "ink";
+// import { Component, createElement as h, useMemo, ReactNode } from "react";
 
 export const RunContext = Record({
   schema: PgIdentifier,
@@ -61,22 +61,6 @@ export const directRunner: Runner = async (
   }
 };
 
-export const interactiveRunner: Runner = async (
-  operations: ModuleOperationType[],
-  toStatement: ToStatementFunction<ModuleOperationType>,
-  context: RunContextI,
-): Promise<void> => {
-  const allStatements = operations.map(op => toStatement(op, context));
-
-  render(
-    h(
-      Box,
-      { flexDirection: "column" },
-      allStatements.map(s => h(Box, null, s)),
-    ),
-  );
-};
-
 export const fileRunner: Runner = async (
   operations: ModuleOperationType[],
   toStatement: ToStatementFunction<ModuleOperationType>,
@@ -87,3 +71,41 @@ export const fileRunner: Runner = async (
 
   await fs.writeFile(context.outFile, contents);
 };
+
+// export const interactiveRunner: Runner = async (
+//   operations: ModuleOperationType[],
+//   toStatement: ToStatementFunction<ModuleOperationType>,
+//   context: RunContextI,
+// ): Promise<void> => {
+//   render(
+//     h(InteractiveRunnerComponent, null, { operations, toStatement, context }),
+//   );
+// };
+
+// interface StatementComponentProps {
+//   statement: string;
+//   status: "pending" | "running" | "succeeded";
+// }
+
+// const StatementComponent = (props: StatementComponentProps) => {
+//   return h(Box, null, props.statement);
+// };
+
+// interface InteractiveRunnerProps {
+//   operations: ModuleOperationType[];
+//   toStatement: ToStatementFunction<ModuleOperationType>;
+//   context: RunContextI;
+// }
+
+// const InteractiveRunnerComponent = (props: InteractiveRunnerProps) => {
+//   const statements = useMemo(
+//     () => props.operations.map(op => props.toStatement(op, props.context)),
+//     [],
+//   );
+
+//   return h(
+//     Box,
+//     { flexDirection: "column", paddingLeft: 10 },
+//     statements.map(s => h(StatementComponent, null, s)),
+//   );
+// };
