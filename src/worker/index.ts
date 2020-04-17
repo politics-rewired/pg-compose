@@ -199,6 +199,7 @@ export const setSecret = async (
 const EncodedSecret = Record({
   __secret: String,
 });
+
 const StandardJobPayload = Dictionary(Unknown, "string");
 const Value = Unknown;
 const JobPayloadToClone = Union(EncodedSecret, StandardJobPayload, Value);

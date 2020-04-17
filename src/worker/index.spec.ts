@@ -1,5 +1,4 @@
 import { Pool } from "pg";
-// import { migrate, encryptSecret, getSecret, GraphileSecrets } from "./index";
 import {
   migrate,
   encryptSecret,
