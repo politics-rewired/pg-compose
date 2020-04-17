@@ -2,12 +2,15 @@ import {
   run as runWorker,
   Task,
   JobHelpers,
-  // RunnerOptions as WorkerRunnerOptions,
+  RunnerOptions as WorkerRunnerOptions,
+  TaskList,
+  AddJobFunction,
 } from "graphile-worker";
 
 import {
   run as runScheduler,
-  // RunnerOptions as SchedulerRunnerOptions,
+  RunnerOptions as SchedulerRunnerOptions,
+  ScheduleConfig,
 } from "graphile-scheduler";
 
 import { Pool, PoolClient } from "pg";
@@ -17,18 +20,62 @@ import { installModule } from "..";
 import { directRunner } from "../runners";
 import { Record, String, Dictionary, Unknown, Union } from "runtypes";
 import { fromPairs, toPairs } from "lodash";
+import { ModuleI } from "../objects/module/core";
 
 type PoolOrPoolClient = Pool | PoolClient;
 
-// type ComposeWorkerOptions = WorkerRunnerOptions &
-//   SchedulerRunnerOptions & {
-//     encryptionSecret: string;
-//   };
+type ComposeWorkerOptions = {
+  encryptionSecret: string;
+  pgPool: Pool;
+} & Omit<
+  WorkerRunnerOptions & SchedulerRunnerOptions,
+  "connectionString" | "schema" | "schedules"
+>;
 
-// export const run = async (m: ModuleI, opts: ComposeWorkerOptions) => {
-// const _worker = await runWorker(opts);
-// const _scheduler = await runScheduler(opts);
-// };
+interface PgComposeWorker {
+  stop: () => Promise<void>;
+  setSecret: (secretRef: string, unencryptedSecret: string) => Promise<void>;
+  addJob: AddJobFunction;
+}
+
+export const run = async (
+  m: ModuleI,
+  opts: ComposeWorkerOptions,
+): Promise<PgComposeWorker> => {
+  const pool = opts.pgPool;
+
+  const cryptr = new Cryptr(opts.encryptionSecret);
+
+  const schedules: ScheduleConfig[] = (m.cronJobs || []).map(cj => ({
+    name: cj.name,
+    pattern: cj.pattern,
+    timeZone: cj.time_zone,
+    taskIdentifier: cj.task_name,
+  }));
+
+  const taskList: TaskList = fromPairs(
+    toPairs(m.taskList)
+      .map(([identifier, task]) => [identifier, wrapTask(pool, cryptr, task)])
+      .concat([["encrypt-secret", makeEncryptSecretTask(cryptr)]]),
+  );
+
+  const scheduler = await runScheduler({
+    pgPool: pool,
+    schedules,
+  });
+
+  const worker = await runWorker({ ...opts, ...{ taskList } });
+
+  return {
+    stop: async () => {
+      scheduler.stop();
+      worker.stop();
+    },
+    setSecret: async (secretRef: string, unencryptedSecret: string) =>
+      setSecret(pool, secretRef, unencryptedSecret),
+    addJob: worker.addJob,
+  };
+};
 
 export const migrate = async (pgPool: Pool) => {
   const worker = await runWorker({ pgPool, taskList: {} });
@@ -106,6 +153,17 @@ export const encryptSecret = async (
   throw new Error(`No secret found with ref ${secretRef}`);
 };
 
+const makeEncryptSecretTask = (cryptr: Cryptr): Task => async (
+  payload: any,
+  helpers: JobHelpers,
+) => {
+  await helpers.withPgClient(async pgClient => {
+    await pgClient.query("begin");
+    await encryptSecret(pgClient, cryptr, payload.ref);
+    await pgClient.query("commit");
+  });
+};
+
 export const getSecret = async (
   client: PoolOrPoolClient,
   cryptr: Cryptr,
@@ -128,7 +186,7 @@ export const getSecret = async (
 };
 
 export const setSecret = async (
-  client: PoolClient,
+  client: PoolOrPoolClient,
   secretRef: string,
   unencryptedSecret: string,
 ): Promise<void> => {

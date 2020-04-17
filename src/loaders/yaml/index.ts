@@ -10,6 +10,7 @@ import { flattenKeyToProp } from "../../util";
 import { TestI, TestRecord } from "../../objects/test";
 import { TableRecord, TraitRecord } from "../../objects/table";
 import { FunctionRecord, FunctionI } from "../../objects/functions";
+import { CronJobI, CronJobRecord } from "../../objects/module/cronjobs";
 
 interface YamlLoaderOpts {
   include: string;
@@ -48,6 +49,10 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     .map(f => (YamlFunction.guard(f) ? toFunction(f) : undefined))
     .filter(IsNotUndefined);
 
+  const cronJobs = allYamlObjects
+    .map(cj => (YamlCronJob.guard(cj) ? toCronJob(cj) : undefined))
+    .filter(IsNotUndefined);
+
   for (const table of tables) {
     TableRecord.check(table);
   }
@@ -64,11 +69,16 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     FunctionRecord.check(func);
   }
 
+  for (const cronJob of cronJobs) {
+    CronJobRecord.check(cronJob);
+  }
+
   return {
     tables,
     traits,
     tests,
     functions,
+    cronJobs,
   };
 };
 
@@ -94,6 +104,10 @@ const YamlFunction = Record({
   kind: Literal("Function"),
 });
 
+const YamlCronJob = Record({
+  kind: Literal("CronJob"),
+});
+
 interface YamlTableI extends Static<typeof YamlTable> {
   [key: string]: any;
 }
@@ -111,6 +125,10 @@ interface YamlExtensionI extends Static<typeof YamlExtension> {
 }
 
 interface YamlFunctionI extends Static<typeof YamlFunction> {
+  [key: string]: any;
+}
+
+interface YamlCronJobI extends Static<typeof YamlCronJob> {
   [key: string]: any;
 }
 
@@ -158,6 +176,13 @@ export const toFunction = (yaml: YamlFunctionI): FunctionI => ({
   returns: yaml.returns,
   volatility: yaml.volatility,
   body: yaml.body,
+});
+
+export const toCronJob = (yaml: YamlCronJobI): CronJobI => ({
+  name: yaml.name,
+  time_zone: yaml.time_zone,
+  pattern: yaml.pattern,
+  task_name: yaml.task_name,
 });
 
 const addOrder = <T>(arr: T[]): (T & { order: number })[] =>

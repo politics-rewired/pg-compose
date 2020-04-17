@@ -7,7 +7,7 @@ import {
   GetterI,
   TriggerI,
   TriggerTiming,
-  foreign_keyI,
+  ForeignKeyI,
 } from "./records";
 import { groupBy, sortBy } from "lodash";
 import { RunContextI } from "../../runners";
@@ -286,11 +286,11 @@ interface PgFk {
   referenced_column_names: string[];
 }
 
-export const introspectforeign_keys = async (
+export const introspectForeignKeys = async (
   client: PoolClient,
   tableIdentifier: PgIdentifierI,
   context: RunContextI,
-): Promise<foreign_keyI[]> => {
+): Promise<ForeignKeyI[]> => {
   const result = await client.query(
     `
       SELECT
@@ -319,7 +319,7 @@ export const introspectforeign_keys = async (
 
   const rows: PgFk[] = result.rows;
 
-  const fks: foreign_keyI[] = rows.map(fk => ({
+  const fks: ForeignKeyI[] = rows.map(fk => ({
     name: fk.constraint_name,
     on: fk.constrained_column_names,
     references: {
@@ -347,7 +347,7 @@ export const introspectTable = async (
     introspectIndexes(client, name, context),
     introspectGetters(client, name, context),
     introspectTriggers(client, name, context),
-    introspectforeign_keys(client, name, context),
+    introspectForeignKeys(client, name, context),
   ]);
 
   const table: TableI = {

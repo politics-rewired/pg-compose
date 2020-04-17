@@ -9,11 +9,13 @@ import {
   GraphileUnencryptedSecrets,
   deepCloneWithSecretReplacement,
   wrapTask,
+  run,
 } from "./index";
 import { PoolClient } from "pg";
 import * as faker from "faker";
 import { runTaskListOnce, TaskList, JobHelpers } from "graphile-worker";
 import Cryptr = require("cryptr");
+import { ModuleI } from "../objects/module/core";
 
 const pool = new Pool();
 
@@ -28,13 +30,13 @@ const makeTaskList = (client: PoolClient, cryptr: Cryptr): TaskList => ({
   },
 });
 
-describe("secret management", () => {
+describe("worker secrets and task wrapping", () => {
   beforeAll(async () => {
     await pool.query("drop schema if exists graphile_secrets cascade;");
     await migrate(pool);
   });
 
-  test("symmetric encryption job - inserting a secret causes replacement w/ encrypted secret", async () => {
+  test("management: symmetric encryption job - inserting a secret causes replacement w/ encrypted secret", async () => {
     const cryptr = new Cryptr(faker.random.alphaNumeric(10));
 
     const client = await pool.connect();
@@ -76,7 +78,7 @@ describe("secret management", () => {
     await client.release();
   });
 
-  test("getSecret gets the unencrypted secret if the encrypted secret is not available yet", async () => {
+  test("management: getSecret gets the unencrypted secret if the encrypted secret is not available yet", async () => {
     const cryptr = new Cryptr(faker.random.alphaNumeric(10));
     const client = await pool.connect();
     await client.query("begin");
@@ -108,7 +110,7 @@ describe("secret management", () => {
     await client.release();
   });
 
-  test("setSecret(ref, unencrypted_secret) inserts into secrets and the unlogged table", async () => {
+  test("management: setSecret(ref, unencrypted_secret) inserts into secrets and the unlogged table", async () => {
     const client = await pool.connect();
     await client.query("begin");
     await clearJobsAndSchedules(client);
@@ -130,7 +132,7 @@ describe("secret management", () => {
     await client.release();
   });
 
-  test("setSecret + getSecret isomorphism w/ job", async () => {
+  test("management: setSecret + getSecret isomorphism w/ job", async () => {
     const cryptr = new Cryptr(faker.random.alphaNumeric(10));
     const client = await pool.connect();
     await client.query("begin");
@@ -153,7 +155,7 @@ describe("secret management", () => {
     await client.release();
   });
 
-  test("setSecret + getSecret isomorphism w/o job", async () => {
+  test("management: setSecret + getSecret isomorphism w/o job", async () => {
     const cryptr = new Cryptr(faker.random.alphaNumeric(10));
     const client = await pool.connect();
     await client.query("begin");
@@ -167,10 +169,8 @@ describe("secret management", () => {
     const resolvedUnencryptedSecret = await getSecret(client, cryptr, ref);
     expect(resolvedUnencryptedSecret).toEqual(unencryptedSecret);
   });
-});
 
-describe("secret substitution", () => {
-  test("should substitute a deeply nested secret", async () => {
+  test("substitution: should substitute a deeply nested secret", async () => {
     const cryptr = new Cryptr(faker.random.alphaNumeric(10));
     const client = await pool.connect();
     await client.query("begin");
@@ -202,7 +202,7 @@ describe("secret substitution", () => {
     await client.release();
   });
 
-  test("wrapTask should pass the decoded payload", async () => {
+  test("substitution: wrapTask should pass the decoded payload", async () => {
     const cryptr = new Cryptr(faker.random.alphaNumeric(10));
     const client = await pool.connect();
     await client.query("begin");
@@ -231,4 +231,48 @@ describe("secret substitution", () => {
     expect(myTask).toHaveBeenCalled();
     expect(myTask).toHaveBeenCalledWith(expectedPayload, null);
   });
+
+  test("e2e: should be able to start the worker with module and have it call my task with a decoded payload", async () => {
+    const encryptionSecret = faker.random.alphaNumeric(10);
+
+    const myTask = jest.fn();
+
+    const m: ModuleI = {
+      taskList: {
+        "mock-job": myTask,
+      },
+    };
+
+    const worker = await run(m, {
+      pgPool: pool,
+      encryptionSecret,
+    });
+
+    const company = faker.company.companyName();
+    const account = faker.internet.email();
+    const password = faker.internet.password();
+
+    await worker.setSecret(`${company}-password`, password);
+
+    const payload = {
+      company,
+      credentials: { account, password: { __secret: `${company}-password` } },
+    };
+
+    const expectedPayload = {
+      company,
+      credentials: { account, password },
+    };
+
+    await worker.addJob("mock-job", payload);
+
+    // Give the worker a second to do its thing
+    await wait(1 * 1000);
+
+    expect(myTask).toHaveBeenCalled();
+    expect(myTask).toHaveBeenCalledWith(expectedPayload, expect.any(Object));
+  });
 });
+
+const wait = (n: number): Promise<void> =>
+  new Promise((resolve, _reject) => setTimeout(resolve, n));
