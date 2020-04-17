@@ -1,5 +1,7 @@
 import {
   run as runWorker,
+  Task,
+  JobHelpers,
   // RunnerOptions as WorkerRunnerOptions,
 } from "graphile-worker";
 
@@ -9,11 +11,14 @@ import {
 } from "graphile-scheduler";
 
 import { Pool, PoolClient } from "pg";
-// import { ModuleI } from "../objects/module/core";
 import { loadYaml } from "../loaders/yaml";
 import Cryptr = require("cryptr");
 import { installModule } from "..";
 import { directRunner } from "../runners";
+import { Record, String, Dictionary, Unknown, Union } from "runtypes";
+import { fromPairs, toPairs } from "lodash";
+
+type PoolOrPoolClient = Pool | PoolClient;
 
 // type ComposeWorkerOptions = WorkerRunnerOptions &
 //   SchedulerRunnerOptions & {
@@ -102,7 +107,7 @@ export const encryptSecret = async (
 };
 
 export const getSecret = async (
-  client: PoolClient,
+  client: PoolOrPoolClient,
   cryptr: Cryptr,
   secretRef: string,
 ): Promise<string> => {
@@ -131,4 +136,49 @@ export const setSecret = async (
     "select graphile_secrets.set_secret($1, $2)",
     [secretRef, unencryptedSecret],
   );
+};
+
+const EncodedSecret = Record({
+  __secret: String,
+});
+const StandardJobPayload = Dictionary(Unknown, "string");
+const Value = Unknown;
+const JobPayloadToClone = Union(EncodedSecret, StandardJobPayload, Value);
+
+export const deepCloneWithSecretReplacement = async (
+  client: PoolOrPoolClient,
+  cryptr: Cryptr,
+  v: any,
+): Promise<any> =>
+  JobPayloadToClone.match(
+    async encodedSecret =>
+      await getSecret(client, cryptr, encodedSecret.__secret),
+
+    async toRecurseOn =>
+      fromPairs(
+        await Promise.all(
+          toPairs(toRecurseOn).map(async ([k, v]) => [
+            k,
+            await deepCloneWithSecretReplacement(client, cryptr, v),
+          ]),
+        ),
+      ),
+
+    async value => value,
+  )(v);
+
+export const wrapTask = (
+  client: PoolOrPoolClient,
+  cryptr: Cryptr,
+  task: Task,
+): Task => {
+  return async (payload: unknown, helpers: JobHelpers) => {
+    const decodedPayload = await deepCloneWithSecretReplacement(
+      client,
+      cryptr,
+      payload,
+    );
+
+    return await task(decodedPayload, helpers);
+  };
 };

@@ -7,10 +7,12 @@ import {
   getSecret,
   setSecret,
   GraphileUnencryptedSecrets,
+  deepCloneWithSecretReplacement,
+  wrapTask,
 } from "./index";
 import { PoolClient } from "pg";
 import * as faker from "faker";
-import { runTaskListOnce, TaskList } from "graphile-worker";
+import { runTaskListOnce, TaskList, JobHelpers } from "graphile-worker";
 import Cryptr = require("cryptr");
 
 const pool = new Pool();
@@ -33,14 +35,14 @@ describe("secret management", () => {
   });
 
   test("symmetric encryption job - inserting a secret causes replacement w/ encrypted secret", async () => {
-    const cryptr = new Cryptr(faker.random.alphaNumeric());
+    const cryptr = new Cryptr(faker.random.alphaNumeric(10));
 
     const client = await pool.connect();
     await client.query("begin");
     await clearJobsAndSchedules(client);
 
-    const ref = faker.random.alphaNumeric();
-    const unencryptedSecret = faker.random.alphaNumeric();
+    const ref = faker.random.alphaNumeric(10);
+    const unencryptedSecret = faker.random.alphaNumeric(10);
 
     // Set up job
     await client.query(
@@ -75,13 +77,13 @@ describe("secret management", () => {
   });
 
   test("getSecret gets the unencrypted secret if the encrypted secret is not available yet", async () => {
-    const cryptr = new Cryptr(faker.random.alphaNumeric());
+    const cryptr = new Cryptr(faker.random.alphaNumeric(10));
     const client = await pool.connect();
     await client.query("begin");
     await clearJobsAndSchedules(client);
 
-    const ref = faker.random.alphaNumeric();
-    const unencryptedSecret = faker.random.alphaNumeric();
+    const ref = faker.random.alphaNumeric(10);
+    const unencryptedSecret = faker.random.alphaNumeric(10);
 
     // Set up job
     await client.query(
@@ -111,8 +113,8 @@ describe("secret management", () => {
     await client.query("begin");
     await clearJobsAndSchedules(client);
 
-    const ref = faker.random.alphaNumeric();
-    const unencryptedSecret = faker.random.alphaNumeric();
+    const ref = faker.random.alphaNumeric(10);
+    const unencryptedSecret = faker.random.alphaNumeric(10);
 
     await setSecret(client, ref, unencryptedSecret);
 
@@ -129,13 +131,13 @@ describe("secret management", () => {
   });
 
   test("setSecret + getSecret isomorphism w/ job", async () => {
-    const cryptr = new Cryptr(faker.random.alphaNumeric());
+    const cryptr = new Cryptr(faker.random.alphaNumeric(10));
     const client = await pool.connect();
     await client.query("begin");
     await clearJobsAndSchedules(client);
 
-    const ref = faker.random.alphaNumeric();
-    const unencryptedSecret = faker.random.alphaNumeric();
+    const ref = faker.random.alphaNumeric(10);
+    const unencryptedSecret = faker.random.alphaNumeric(10);
 
     await setSecret(client, ref, unencryptedSecret);
 
@@ -146,20 +148,87 @@ describe("secret management", () => {
 
     const resolvedUnencryptedSecret = await getSecret(client, cryptr, ref);
     expect(resolvedUnencryptedSecret).toEqual(unencryptedSecret);
+
+    await client.query("rollback");
+    await client.release();
   });
 
   test("setSecret + getSecret isomorphism w/o job", async () => {
-    const cryptr = new Cryptr(faker.random.alphaNumeric());
+    const cryptr = new Cryptr(faker.random.alphaNumeric(10));
     const client = await pool.connect();
     await client.query("begin");
     await clearJobsAndSchedules(client);
 
-    const ref = faker.random.alphaNumeric();
-    const unencryptedSecret = faker.random.alphaNumeric();
+    const ref = faker.random.alphaNumeric(10);
+    const unencryptedSecret = faker.random.alphaNumeric(10);
 
     await setSecret(client, ref, unencryptedSecret);
 
     const resolvedUnencryptedSecret = await getSecret(client, cryptr, ref);
     expect(resolvedUnencryptedSecret).toEqual(unencryptedSecret);
+  });
+});
+
+describe("secret substitution", () => {
+  test("should substitute a deeply nested secret", async () => {
+    const cryptr = new Cryptr(faker.random.alphaNumeric(10));
+    const client = await pool.connect();
+    await client.query("begin");
+    await clearJobsAndSchedules(client);
+
+    const company = faker.company.companyName();
+    const account = faker.internet.email();
+    const password = faker.internet.password();
+
+    await setSecret(client, `${company}-password`, password);
+
+    const payload = {
+      company,
+      credentials: { account, password: { __secret: `${company}-password` } },
+    };
+
+    const decryptedPayload = await deepCloneWithSecretReplacement(
+      client,
+      cryptr,
+      payload,
+    );
+
+    expect(decryptedPayload).toEqual({
+      company,
+      credentials: { account, password },
+    });
+
+    await client.query("rollback");
+    await client.release();
+  });
+
+  test("wrapTask should pass the decoded payload", async () => {
+    const cryptr = new Cryptr(faker.random.alphaNumeric(10));
+    const client = await pool.connect();
+    await client.query("begin");
+    await clearJobsAndSchedules(client);
+
+    const company = faker.company.companyName();
+    const account = faker.internet.email();
+    const password = faker.internet.password();
+
+    await setSecret(client, `${company}-password`, password);
+
+    const payload = {
+      company,
+      credentials: { account, password: { __secret: `${company}-password` } },
+    };
+
+    const expectedPayload = {
+      company,
+      credentials: { account, password },
+    };
+
+    const myTask = jest.fn();
+    const wrappedTask = wrapTask(client, cryptr, myTask);
+
+    await wrappedTask(payload, (null as any) as JobHelpers);
+    expect(myTask).toHaveBeenCalled();
+    expect(myTask).toHaveBeenCalledWith(expectedPayload, null);
   });
 });
