@@ -1,6 +1,7 @@
 import { ModuleProvider } from "./objects/module";
 import { Runner, RunContextI } from "./runners";
 import { ModuleI } from "./objects/module/core";
+import { run } from "./worker";
 
 export const installModule = async (
   m: ModuleI,
@@ -17,3 +18,5 @@ export const installModule = async (
 
   await runner(operationList, ModuleProvider.toStatement(context), context);
 };
+
+export { run };
