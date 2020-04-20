@@ -94,7 +94,7 @@ const makeColumnToStatement = (context: RunContextI) =>
     [
       SetColumnDataTypeOperation,
       op =>
-        `ALTER TABLE "${context.schema}"."${op.table.name}" column ${op.column.name} set data type ${op.column.type};`,
+        `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${op.column.name} set data type ${op.column.type};`,
     ],
     [
       SetColumnDefaultOperation,
@@ -195,7 +195,7 @@ $$ language plpgsql strict;`;
 CREATE TRIGGER ${triggerName}
   ${op.trigger.timing.replace("_", " ")}
   ON ${makeTableIdentifier(context.schema, op.table.name)}
-  FOR EACH ROW ${op.trigger.when ? "WHEN ${op.trigger.when" : ""}
+  FOR EACH ROW ${op.trigger.when ? `WHEN (${op.trigger.when})` : ""}
   EXECUTE FUNCTION "${context.schema}".${functionName}();
         `;
 
