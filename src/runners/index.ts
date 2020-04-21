@@ -56,7 +56,7 @@ export const directRunner: Runner = async (
       await context.client.query(statement);
     } catch (ex) {
       console.error(
-        `Error running operation ${op.code}. Tried statement: \n\n${statement}.\n\nGot error: `,
+        `Error running operation ${op.code}. Tried statement: \n\n${statement}\n\nGot error: `,
         ex,
       );
       // process.exit(1);

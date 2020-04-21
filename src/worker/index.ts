@@ -88,7 +88,7 @@ export const migrate = async (pgPool: Pool) => {
 
   await client.query("create schema if not exists graphile_secrets");
 
-  const m = await loadYaml({ include: "./src/worker/graphile-secrets.yaml" });
+  const m = await loadYaml({ include: `${__dirname}/graphile-secrets.yaml` });
 
   await installModule(m, directRunner, {
     client,

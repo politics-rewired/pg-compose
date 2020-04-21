@@ -274,7 +274,7 @@ const toStatement = (context: RunContextI) =>
           op.func.body
         } $$ language ${op.func.language} ${op.func.volatility} SECURITY ${
           op.func.security
-        } SET search_path = "${context.schema}"`,
+        } SET search_path = "${context.schema}";`,
     ],
     [
       ReplaceFunctionOperation,
@@ -287,7 +287,7 @@ const toStatement = (context: RunContextI) =>
           op.func.body
         } $$ language ${op.func.language} ${op.func.volatility} SECURITY ${
           op.func.security
-        } SET search_path = "${context.schema}"`,
+        } SET search_path = "${context.schema}";`,
     ],
     [
       DropFunctionOperation,
@@ -296,7 +296,7 @@ const toStatement = (context: RunContextI) =>
     [
       RenameFunctionOperation,
       op =>
-        `ALTER FUNCTION "${context.schema}".${op.func.previous_name} RENAME TO ${op.func.name}`,
+        `ALTER FUNCTION "${context.schema}".${op.func.previous_name} RENAME TO ${op.func.name};`,
     ],
     [
       AlterFunctionVolatilityOperation,
