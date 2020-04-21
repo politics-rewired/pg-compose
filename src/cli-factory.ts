@@ -14,6 +14,7 @@ import * as tape from "tape";
 import { watch } from "chokidar";
 import * as glob from "glob";
 import { TaskList } from "graphile-worker";
+import { migrate as migrateWorker, run as runWorker } from "./worker";
 
 interface CliOpts {
   database: string;
@@ -115,6 +116,33 @@ const test = (taskList?: TaskList) => async (argv: CliOpts) => {
   }
 };
 
+const run = (taskList?: TaskList) => async (argv: CliOpts) => {
+  const pool = new Pool({ connectionString: argv.database });
+
+  await migrateWorker(pool);
+
+  const m = await loadYaml({
+    include: argv.files,
+  });
+
+  if (taskList !== undefined) {
+    m.taskList = taskList;
+  }
+
+  const runner = directRunner;
+
+  const client = await pool.connect();
+
+  const runContext: RunContextI | ToFileRunContextI = {
+    schema: argv.schema,
+    client,
+  };
+
+  await installModule(m, runner, runContext);
+
+  await runWorker(m, { pgPool: pool, encryptionSecret: process.env.SECRET! });
+};
+
 export const makeCli = (taskList?: TaskList) =>
   yargs
     .options({
@@ -156,6 +184,10 @@ export const makeCli = (taskList?: TaskList) =>
     .command({
       command: "test",
       handler: test(taskList),
+    })
+    .command({
+      command: "run",
+      handler: run(taskList),
     })
     .demandCommand()
     .help().argv;
