@@ -46,7 +46,7 @@ export const setupTests = async (
   await client.query("savepoint after_migrate;");
 
   const reset: TestResetFn = async () => {
-    await client.query("rollback to after_migrate");
+    await client.query("rollback to savepoint after_migrate");
   };
 
   return reset;
@@ -63,8 +63,6 @@ export const runTest = async (
 
   const wrapTaskList = makeWrapTaskList(client, new Cryptr("test"));
   const taskList = wrapTaskList(context.taskList || {});
-
-  await client.query("begin");
 
   tape(test.name, async t => {
     const setupString = render(test.setup, process.env);
@@ -89,7 +87,7 @@ export const runTest = async (
         assertion.expect.toString(),
       );
 
-      await client.query("rollback to after_setup");
+      await client.query("rollback to savepoint after_setup");
     }
 
     await reset();

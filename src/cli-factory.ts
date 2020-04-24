@@ -92,6 +92,7 @@ const test = (taskList?: TaskList) => async (argv: CliOpts) => {
       taskList,
     };
 
+    await client.query("begin");
     const reset = await setupTests(m, testContext);
 
     for (const test of m.tests || []) {
@@ -99,7 +100,8 @@ const test = (taskList?: TaskList) => async (argv: CliOpts) => {
     }
 
     if (!argv.watch) {
-      tape.onFinish(() => {
+      tape.onFinish(async () => {
+        await client.query("rollback");
         setTimeout(process.exit, 30);
       });
     }
