@@ -9,10 +9,16 @@ import {
   deepCloneWithSecretReplacement,
   wrapTask,
   run,
+  runTaskListOnce,
+  Task,
+  TaskList,
 } from "./index";
 import { PoolClient } from "pg";
 import * as faker from "faker";
-import { runTaskListOnce, TaskList, JobHelpers } from "graphile-worker";
+import {
+  runTaskListOnce as runGraphileWorkerTaskListOnce,
+  JobHelpers,
+} from "graphile-worker";
 import Cryptr = require("cryptr");
 import { ModuleI } from "../objects/module/core";
 
@@ -29,7 +35,7 @@ const makeTaskList = (client: PoolClient, cryptr: Cryptr): TaskList => ({
   },
 });
 
-describe("worker secrets and task wrapping", () => {
+describe("worker secrets, task wrapping, and after functions", () => {
   beforeAll(async () => {
     await pool.query("drop schema if exists graphile_secrets cascade;");
     await migrate(pool);
@@ -59,7 +65,7 @@ describe("worker secrets and task wrapping", () => {
     const taskList = makeTaskList(client, cryptr);
 
     // run the worker job via runTaskListOnce
-    await runTaskListOnce({ pgPool: pool }, taskList, client);
+    await runGraphileWorkerTaskListOnce({ pgPool: pool }, taskList, client);
 
     // select encrypted_secret from graphile_secrets.secrets where ref = ref
     const { rows } = await client.query<GraphileSecrets>(
@@ -144,8 +150,8 @@ describe("worker secrets and task wrapping", () => {
 
     const taskList = makeTaskList(client, cryptr);
 
-    // run the worker job via runTaskListOnce
-    await runTaskListOnce({ pgPool: pool }, taskList, client);
+    // run the worker job via runGraphileWorkerTaskListOnce
+    await runGraphileWorkerTaskListOnce({ pgPool: pool }, taskList, client);
 
     const resolvedUnencryptedSecret = await getSecret(client, cryptr, ref);
     expect(resolvedUnencryptedSecret).toEqual(unencryptedSecret);
@@ -167,6 +173,9 @@ describe("worker secrets and task wrapping", () => {
 
     const resolvedUnencryptedSecret = await getSecret(client, cryptr, ref);
     expect(resolvedUnencryptedSecret).toEqual(unencryptedSecret);
+
+    await client.query("rollback");
+    await client.release();
   });
 
   test("substitution: should substitute a deeply nested secret", async () => {
@@ -229,6 +238,109 @@ describe("worker secrets and task wrapping", () => {
     await wrappedTask(payload, (null as any) as JobHelpers);
     expect(myTask).toHaveBeenCalled();
     expect(myTask).toHaveBeenCalledWith(expectedPayload, null);
+
+    await client.query("rollback");
+    await client.release();
+  });
+
+  test("__after: should call the after function with the returned payload", async () => {
+    const client = await pool.connect();
+    await client.query("begin");
+    await clearJobsAndSchedules(client);
+
+    await client.query(`
+      create table some_integers (
+        i integer
+      );
+
+      create function add_an_integer(payload json, result json, context json) returns void as $$
+        insert into some_integers (i)
+        values ((result->>'i')::integer)
+      $$ language sql;
+    `);
+
+    const randomInteger = faker.random.number(100);
+
+    const returnAnI: Task = async (_payload: any, _helpers) => {
+      return { i: randomInteger };
+    };
+
+    const m: ModuleI = {
+      taskList: {
+        "return-an-i": returnAnI,
+      },
+    };
+
+    await client.query("select graphile_worker.add_job($1, $2)", [
+      "return-an-i",
+      { __after: "add_an_integer" },
+    ]);
+
+    await runTaskListOnce(
+      m,
+      { pgPool: pool, encryptionSecret: "hello" },
+      client,
+    );
+
+    const { rows } = await client.query<{ i: number }>(
+      "select * from some_integers",
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].i).toEqual(randomInteger);
+
+    await client.query("rollback");
+    await client.release();
+  });
+
+  test("__after: should get called with the context", async () => {
+    const client = await pool.connect();
+    await client.query("begin");
+    await clearJobsAndSchedules(client);
+
+    await client.query(`
+      create table some_integers (
+        i integer
+      );
+
+      create function add_an_integer(payload json, result json, context json) returns void as $$
+        insert into some_integers (i)
+        values ((context->>'i')::integer)
+      $$ language sql;
+    `);
+
+    const randomInteger = faker.random.number(100);
+
+    const returnAnI: Task = async (_payload: any, _helpers) => {
+      return { i: 0.5 };
+    };
+
+    const m: ModuleI = {
+      taskList: {
+        "return-an-i": returnAnI,
+      },
+    };
+
+    await client.query("select graphile_worker.add_job($1, $2)", [
+      "return-an-i",
+      { __after: "add_an_integer", __context: { i: randomInteger } },
+    ]);
+
+    await runTaskListOnce(
+      m,
+      { pgPool: pool, encryptionSecret: "hello" },
+      client,
+    );
+
+    const { rows } = await client.query<{ i: number }>(
+      "select * from some_integers",
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].i).toEqual(randomInteger);
+
+    await client.query("rollback");
+    await client.release();
   });
 
   test("e2e: should be able to start the worker with module and have it call my task with a decoded payload", async () => {

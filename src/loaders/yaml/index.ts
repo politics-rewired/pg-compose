@@ -158,6 +158,7 @@ export const toTest = (yaml: YamlTestI): TestI => ({
   name: yaml.name,
   setup: yaml.setup,
   assertions: yaml.assertions,
+  run_task_list_after_setup: yaml.run_task_list_after_setup,
 });
 
 export const toExtension = (yaml: YamlExtensionI): TableExtensionI => ({

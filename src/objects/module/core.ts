@@ -4,7 +4,7 @@ import { TestRecord } from "../test";
 import { TableExtension } from "../table/records";
 import { FunctionRecord } from "../functions";
 import { CronJobRecord } from "./cronjobs";
-import { Task } from "graphile-worker";
+import { TaskList } from "../../worker";
 
 export const ModuleRecord = Partial({
   tables: Array(TableRecord),
@@ -16,7 +16,5 @@ export const ModuleRecord = Partial({
 });
 
 export interface ModuleI extends Static<typeof ModuleRecord> {
-  taskList?: {
-    [taskName: string]: Task;
-  };
+  taskList?: TaskList;
 }

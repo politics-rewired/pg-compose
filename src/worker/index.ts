@@ -1,9 +1,10 @@
 import {
   run as runWorker,
-  Task,
+  runTaskListOnce as runGraphileWorkerTaskListOnce,
+  Task as GraphileWorkerTask,
   JobHelpers,
   RunnerOptions as WorkerRunnerOptions,
-  TaskList,
+  TaskList as GraphileWorkerTaskList,
   AddJobFunction,
 } from "graphile-worker";
 
@@ -38,6 +39,20 @@ interface PgComposeWorker {
   addJob: AddJobFunction;
 }
 
+export type Task = (payload: any, helpers: JobHelpers) => Promise<any>;
+export interface TaskList {
+  [name: string]: Task;
+}
+
+export const makeWrapTaskList = (pool: PoolOrPoolClient, cryptr: Cryptr) => (
+  taskList: TaskList,
+): GraphileWorkerTaskList =>
+  fromPairs(
+    toPairs(taskList)
+      .map(([identifier, task]) => [identifier, wrapTask(pool, cryptr, task)])
+      .concat([["encrypt-secret", makeEncryptSecretTask(cryptr)]]),
+  );
+
 export const run = async (
   m: ModuleI,
   opts: ComposeWorkerOptions,
@@ -53,11 +68,8 @@ export const run = async (
     taskIdentifier: cj.task_name,
   }));
 
-  const taskList: TaskList = fromPairs(
-    toPairs(m.taskList)
-      .map(([identifier, task]) => [identifier, wrapTask(pool, cryptr, task)])
-      .concat([["encrypt-secret", makeEncryptSecretTask(cryptr)]]),
-  );
+  const wrapTaskList = makeWrapTaskList(pool, cryptr);
+  const taskList = wrapTaskList(m.taskList || {});
 
   const scheduler = await runScheduler({
     pgPool: pool,
@@ -75,6 +87,20 @@ export const run = async (
       setSecret(pool, secretRef, unencryptedSecret),
     addJob: worker.addJob,
   };
+};
+
+export const runTaskListOnce = async (
+  m: ModuleI,
+  opts: ComposeWorkerOptions,
+  client: PoolClient,
+) => {
+  const pool = opts.pgPool;
+  const cryptr = new Cryptr(opts.encryptionSecret);
+
+  const wrapTaskList = makeWrapTaskList(pool, cryptr);
+  const taskList = wrapTaskList(m.taskList || {});
+
+  await runGraphileWorkerTaskListOnce({}, taskList, client);
 };
 
 export const migrate = async (pgPool: Pool) => {
@@ -226,18 +252,57 @@ export const deepCloneWithSecretReplacement = async (
     async value => value,
   )(v);
 
+const AFTER_FN_KEY = "__after";
+const CONTEXT_KEY = "__context";
+
+export const extractAfterFnAndContext = (
+  payload: any,
+): { payload: any; afterFn: string | undefined; context: any } => {
+  const pairs = toPairs(payload);
+
+  const afterFnPair = (pairs.find(([k, _v]) => k === AFTER_FN_KEY) as [
+    string,
+    string,
+  ]) || [undefined, undefined];
+
+  const contextPair = pairs.find(([k, _v]) => k === CONTEXT_KEY) || [
+    undefined,
+    undefined,
+  ];
+
+  return {
+    payload: fromPairs(
+      pairs.filter(([k, _v]) => ![AFTER_FN_KEY, CONTEXT_KEY].includes(k)),
+    ),
+    afterFn: afterFnPair[1],
+    context: contextPair[1],
+  };
+};
+
 export const wrapTask = (
   client: PoolOrPoolClient,
   cryptr: Cryptr,
   task: Task,
-): Task => {
+): GraphileWorkerTask => {
   return async (payload: unknown, helpers: JobHelpers) => {
+    const {
+      payload: strippedPayload,
+      afterFn,
+      context,
+    } = extractAfterFnAndContext(payload);
+
     const decodedPayload = await deepCloneWithSecretReplacement(
       client,
       cryptr,
-      payload,
+      strippedPayload,
     );
 
-    return await task(decodedPayload, helpers);
+    if (afterFn === undefined) {
+      return await task(decodedPayload, helpers);
+    }
+
+    const result = await task(decodedPayload, helpers);
+    const query = `select * from ${afterFn}($1, $2, $3)`;
+    await helpers.query(query, [strippedPayload, result, context]);
   };
 };

@@ -326,16 +326,12 @@ const identityFn = (a: FunctionI, b: FunctionI) => {
   let sameArgTypes = true;
 
   a.arguments.forEach((arg, idx) => {
-    if (arg.type === b.arguments[idx].type) {
+    if (arg.type !== b.arguments[idx].type) {
       sameArgTypes = false;
     }
   });
 
-  if (!sameArgTypes) {
-    return false;
-  }
-
-  return true;
+  return sameArgTypes;
 };
 
 export const FunctionProvider: ManyObjectProvider<

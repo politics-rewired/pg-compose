@@ -1,9 +1,8 @@
 import { ModuleProvider } from "./objects/module";
 import { Runner, RunContextI } from "./runners";
 import { ModuleI } from "./objects/module/core";
-import { run } from "./worker";
+import { run, Task, TaskList } from "./worker";
 import { loadYaml } from "./loaders/yaml";
-import { Task, TaskList } from "graphile-worker";
 import { makeCli } from "./cli-factory";
 
 export const installModule = async (

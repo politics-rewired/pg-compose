@@ -29,3 +29,53 @@ To run your tests:
 ```bash
 pg-compose test -d "postgresql://localhost:5432/postgres" -f "./**/*.yaml"
 ```
+
+And then to actually run the instance (run your migrations and start graphile
+worker):
+
+```bash
+SECRET=secret pg-compose run -d "postgresql://localhost:5432/postgres" -f "./**/*.yaml"
+```
+
+## Documentation
+
+### Tables
+
+You can create tables via:
+
+```
+kind: Table
+name: people
+columns:
+  id:
+    type: uuid
+    default:
+      type: function
+      fn: uuid_generate_v1mc()
+    nullable: false
+  first_name
+    type: text
+    nullable: false
+    default: 'John'
+  last_name:
+    type: text
+    nullable: true
+indexes:
+  people_pkey:
+    unique: true
+    primary_key: true
+    on:
+      - column: id
+triggers:
+  before_insert:
+    - language: plpgsql
+      for_each: row
+      name:
+      order: 1
+```
+
+### Special Job Payload Components
+
+#### \_\_secret
+
+#### \_\_after + \_\_context

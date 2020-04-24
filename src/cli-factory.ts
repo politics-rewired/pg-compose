@@ -13,8 +13,7 @@ import { runTest, setupTests } from "./objects/test";
 import * as tape from "tape";
 import { watch } from "chokidar";
 import * as glob from "glob";
-import { TaskList } from "graphile-worker";
-import { migrate as migrateWorker, run as runWorker } from "./worker";
+import { migrate as migrateWorker, run as runWorker, TaskList } from "./worker";
 
 interface CliOpts {
   database: string;
@@ -90,6 +89,7 @@ const test = (taskList?: TaskList) => async (argv: CliOpts) => {
     const testContext = {
       runContext,
       runner,
+      taskList,
     };
 
     const reset = await setupTests(m, testContext);
