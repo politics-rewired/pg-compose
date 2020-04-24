@@ -310,6 +310,16 @@ const toStatement = (context: RunContextI) =>
     ],
   );
 
+const pgTypeAliases = {
+  integer: "int4",
+};
+
+const areTypesEqual = (a: string, b: string) => {
+  const aType = pgTypeAliases[a] || a;
+  const bType = pgTypeAliases[b] || b;
+  return aType === bType;
+};
+
 const identityFn = (a: FunctionI, b: FunctionI) => {
   if (a.name !== b.name && b.name !== a.previous_name) {
     return false;
@@ -326,7 +336,7 @@ const identityFn = (a: FunctionI, b: FunctionI) => {
   let sameArgTypes = true;
 
   a.arguments.forEach((arg, idx) => {
-    if (arg.type !== b.arguments[idx].type) {
+    if (!areTypesEqual(arg.type, b.arguments[idx].type)) {
       sameArgTypes = false;
     }
   });
