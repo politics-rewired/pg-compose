@@ -65,27 +65,46 @@ export const runTest = async (
   const taskList = wrapTaskList(context.taskList || {});
 
   tape(test.name, async t => {
-    const setupString = render(test.setup, process.env);
-    await client.query(setupString);
-
-    await client.query("savepoint after_setup");
-
-    if (test.run_task_list_after_setup === true) {
-      await runTaskListOnce({}, taskList, client);
+    try {
+      const setupString = render(test.setup, process.env);
+      await client.query(setupString);
+    } catch (ex) {
+      console.error(`Error in setup for test [${test.name}]: `, ex);
+      return t.error(ex);
     }
 
+    try {
+      if (test.run_task_list_after_setup === true) {
+        await runTaskListOnce({}, taskList, client);
+      }
+    } catch (ex) {
+      console.error(`Error in task list for test [${test.name}]: `, ex);
+      return t.error(ex);
+    }
+
+    await client.query("savepoint after_setup");
+    console.log(await client.query("select * from van_system"));
+
     for (const assertion of test.assertions) {
-      const {
-        rows: [result],
-      } = await client.query(assertion.return);
+      try {
+        const {
+          rows: [result],
+        } = await client.query(assertion.return);
 
-      const unpacked =
-        result !== undefined ? result[Object.keys(result)[0]] : undefined;
+        const unpacked =
+          result !== undefined ? result[Object.keys(result)[0]] : undefined;
 
-      t.equal(
-        unpacked !== undefined ? unpacked.toString() : unpacked,
-        assertion.expect.toString(),
-      );
+        t.equal(
+          unpacked !== undefined ? unpacked.toString() : unpacked,
+          assertion.expect.toString(),
+        );
+      } catch (ex) {
+        console.error(
+          `Error in assertion (${assertion.name}) for test [${test.name}]: `,
+          ex,
+        );
+        return t.error(ex);
+      }
 
       await client.query("rollback to savepoint after_setup");
     }
