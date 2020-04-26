@@ -1,6 +1,6 @@
 import { Loader } from "../core";
 import { ModuleI } from "../../objects/module/core";
-import { Record, Literal, Static, Contract } from "runtypes";
+import { Record, Literal, Static } from "runtypes";
 import { TableI, TraitI, TableExtensionI } from "../../objects/table/records";
 import * as glob from "glob";
 import { parseAllDocuments } from "yaml";
