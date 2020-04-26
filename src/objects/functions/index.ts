@@ -37,10 +37,19 @@ export const FunctionRecord = Record({
 }).And(
   Partial({
     previous_name: PgIdentifier,
+    implements: Array(String),
   }),
 );
 
 export interface FunctionI extends Static<typeof FunctionRecord> {}
+
+export const ContractRecord = Record({
+  name: String,
+  arguments: Array(FunctionArgument),
+  returns: PgIdentifier,
+});
+
+export interface ContractI extends Static<typeof ContractRecord> {}
 
 interface PgFunc {
   name: string;
@@ -320,28 +329,45 @@ const areTypesEqual = (a: string, b: string) => {
   return aType === bType;
 };
 
+export const checkFunctionContractsMatch = (
+  func: FunctionI | ContractI,
+  contract: FunctionI | ContractI,
+) => {
+  const errors = [];
+
+  if (func.returns !== contract.returns) {
+    errors.push(
+      `${func.name} incorrectly implements ${contract.name}: ${func.returns} does not match return type ${contract.returns}`,
+    );
+  }
+
+  if (func.arguments.length !== contract.arguments.length) {
+    errors.push(
+      `${func.name} incorrectly implements ${contract.name}: has ${func.arguments.length} arguments but should have ${contract.arguments.length}`,
+    );
+  }
+
+  func.arguments.forEach((arg, idx) => {
+    if (
+      contract.arguments[idx] !== undefined &&
+      !areTypesEqual(arg.type, contract.arguments[idx].type)
+    ) {
+      errors.push(
+        `${func.name} incorrectly implements ${contract.name}: ${arg.name} is of type ${arg.type} but should be of type ${contract.arguments[idx].type}`,
+      );
+    }
+  });
+
+  return errors.length === 0 ? true : errors;
+};
+
 const identityFn = (a: FunctionI, b: FunctionI) => {
   if (a.name !== b.name && b.name !== a.previous_name) {
     return false;
   }
 
-  if (a.returns !== b.returns) {
-    return false;
-  }
-
-  if (a.arguments.length !== b.arguments.length) {
-    return false;
-  }
-
-  let sameArgTypes = true;
-
-  a.arguments.forEach((arg, idx) => {
-    if (!areTypesEqual(arg.type, b.arguments[idx].type)) {
-      sameArgTypes = false;
-    }
-  });
-
-  return sameArgTypes;
+  const successOrErrors = checkFunctionContractsMatch(a, b);
+  return successOrErrors === true;
 };
 
 export const FunctionProvider: ManyObjectProvider<

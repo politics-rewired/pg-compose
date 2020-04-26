@@ -1,6 +1,6 @@
 import { Loader } from "../core";
 import { ModuleI } from "../../objects/module/core";
-import { Record, Literal, Static } from "runtypes";
+import { Record, Literal, Static, Contract } from "runtypes";
 import { TableI, TraitI, TableExtensionI } from "../../objects/table/records";
 import * as glob from "glob";
 import { parseAllDocuments } from "yaml";
@@ -9,7 +9,12 @@ import { flatMap } from "lodash";
 import { flattenKeyToProp } from "../../util";
 import { TestI, TestRecord } from "../../objects/test";
 import { TableRecord, TraitRecord } from "../../objects/table";
-import { FunctionRecord, FunctionI } from "../../objects/functions";
+import {
+  FunctionRecord,
+  FunctionI,
+  ContractI,
+  ContractRecord,
+} from "../../objects/functions";
 import { CronJobI, CronJobRecord } from "../../objects/module/cronjobs";
 
 interface YamlLoaderOpts {
@@ -49,6 +54,10 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     .map(f => (YamlFunction.guard(f) ? toFunction(f) : undefined))
     .filter(IsNotUndefined);
 
+  const contracts = allYamlObjects
+    .map(c => (YamlContract.guard(c) ? toContract(c) : undefined))
+    .filter(IsNotUndefined);
+
   const cronJobs = allYamlObjects
     .map(cj => (YamlCronJob.guard(cj) ? toCronJob(cj) : undefined))
     .filter(IsNotUndefined);
@@ -73,11 +82,16 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     CronJobRecord.check(cronJob);
   }
 
+  for (const contract of contracts) {
+    ContractRecord.check(contract);
+  }
+
   return {
     tables,
     traits,
     tests,
     functions,
+    contracts,
     cronJobs,
   };
 };
@@ -102,6 +116,10 @@ const YamlExtension = Record({
 
 const YamlFunction = Record({
   kind: Literal("Function"),
+});
+
+const YamlContract = Record({
+  kind: Literal("Contract"),
 });
 
 const YamlCronJob = Record({
@@ -129,6 +147,10 @@ interface YamlFunctionI extends Static<typeof YamlFunction> {
 }
 
 interface YamlCronJobI extends Static<typeof YamlCronJob> {
+  [key: string]: any;
+}
+
+interface YamlContractI extends Static<typeof YamlContract> {
   [key: string]: any;
 }
 
@@ -184,6 +206,12 @@ export const toCronJob = (yaml: YamlCronJobI): CronJobI => ({
   time_zone: yaml.time_zone,
   pattern: yaml.pattern,
   task_name: yaml.task_name,
+});
+
+export const toContract = (yaml: YamlContractI): ContractI => ({
+  name: yaml.name,
+  arguments: yaml.arguments,
+  returns: yaml.returns,
 });
 
 const addOrder = <T>(arr: T[]): (T & { order: number })[] =>

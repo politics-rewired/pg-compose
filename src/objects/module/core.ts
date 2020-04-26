@@ -2,7 +2,7 @@ import { Partial, Static, Array } from "runtypes";
 import { TableRecord, TraitRecord } from "../table";
 import { TestRecord } from "../test";
 import { TableExtension } from "../table/records";
-import { FunctionRecord } from "../functions";
+import { FunctionRecord, ContractRecord } from "../functions";
 import { CronJobRecord } from "./cronjobs";
 import { TaskList } from "../../worker";
 
@@ -12,6 +12,7 @@ export const ModuleRecord = Partial({
   tests: Array(TestRecord),
   extensions: Array(TableExtension),
   functions: Array(FunctionRecord),
+  contracts: Array(ContractRecord),
   cronJobs: Array(CronJobRecord),
 });
 

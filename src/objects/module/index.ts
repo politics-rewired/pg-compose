@@ -15,6 +15,7 @@ import {
   FunctionProvider,
   FunctionOperationType,
   FunctionOperation,
+  checkFunctionContractsMatch,
 } from "../functions";
 import { RunContextI } from "../../runners";
 
@@ -88,6 +89,28 @@ const reconcile = (
     TableProvider.reconcile,
     { dropObjects: shouldDropTables },
   );
+
+  for (const func of desired.functions || []) {
+    if (func.implements !== undefined) {
+      for (const contractName of func.implements) {
+        const contract = (desired.contracts || []).find(
+          c => c.name === contractName,
+        );
+
+        if (contract === undefined) {
+          throw new Error(
+            `Function ${func.name} implements ${contractName}, but that contract does not exist`,
+          );
+        }
+
+        const successOrErrors = checkFunctionContractsMatch(func, contract);
+
+        if (Array.isArray(successOrErrors)) {
+          throw new Error(successOrErrors.join("\n"));
+        }
+      }
+    }
+  }
 
   const functionOperations = createOperationsForObjectWithIdentityFunction(
     desired.functions,
