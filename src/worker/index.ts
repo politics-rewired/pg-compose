@@ -184,9 +184,7 @@ const makeEncryptSecretTask = (cryptr: Cryptr): Task => async (
   helpers: JobHelpers,
 ) => {
   await helpers.withPgClient(async pgClient => {
-    await pgClient.query("begin");
     await encryptSecret(pgClient, cryptr, payload.ref);
-    await pgClient.query("commit");
   });
 };
 
@@ -199,6 +197,10 @@ export const getSecret = async (
     "select * from graphile_secrets.secrets where ref = $1",
     [secretRef],
   );
+
+  if (rows.length === 0) {
+    throw new Error(`Secret '${secretRef}' not found`);
+  }
 
   if (rows[0].encrypted_secret === null) {
     const { rows } = await client.query<GraphileUnencryptedSecrets>(

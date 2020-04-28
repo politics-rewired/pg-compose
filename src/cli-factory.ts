@@ -15,6 +15,18 @@ import { watch } from "chokidar";
 import * as glob from "glob";
 import { migrate as migrateWorker, run as runWorker, TaskList } from "./worker";
 
+// const submit = Query.prototype.submit;
+// Query.prototype.submit = function() {
+//   const text = this.text;
+//   const values = this.values;
+//   const query = (values || []).reduce(
+//     (q: any, v: any, i: any) => q.replace(`$${i + 1}`, v),
+//     text,
+//   );
+//   console.log(query);
+//   submit.apply(this, arguments);
+// };
+
 interface CliOpts {
   database: string;
   files: string;

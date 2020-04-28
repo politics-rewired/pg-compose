@@ -83,7 +83,6 @@ export const runTest = async (
     }
 
     await client.query("savepoint after_setup");
-    console.log(await client.query("select * from van_system"));
 
     for (const assertion of test.assertions) {
       try {
