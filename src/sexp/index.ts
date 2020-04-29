@@ -11,14 +11,14 @@ const SExprValue = Union(String, Number);
 // const SExprColumn = Tuple(Literal("column"), String);
 const SExprOperation = Tuple(String, Array(Unknown));
 
-interface CompilationIntermediary {
+export interface CompiledExpression {
   expression: string | number;
   types: string[];
 }
 
 const Integer = Number.withConstraint(n => Math.floor(n) === Math.ceil(n));
 
-export const compile = (sexp: SExpr): CompilationIntermediary =>
+const compile = (sexp: SExpr): CompiledExpression =>
   match(
     [
       SExprOperation,
@@ -88,3 +88,5 @@ export const compile = (sexp: SExpr): CompilationIntermediary =>
       },
     ],
   )(sexp);
+
+export { operations, compile };

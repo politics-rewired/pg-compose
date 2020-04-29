@@ -17,7 +17,7 @@ interface ArgSpec {
   types: string[];
 }
 
-interface OperationSpec {
+export interface OperationSpec {
   arguments: ArgSpec[];
   description: string;
   returns: string[];
@@ -48,7 +48,7 @@ const floor: OperationSpec = {
   template: ([value]) => `floor(${value})`,
 };
 
-const equals: OperationSpec = {
+const equalTo: OperationSpec = {
   arguments: [
     {
       name: "a",
@@ -71,11 +71,254 @@ const not: OperationSpec = {
   template: ([value]) => `not ${value}`,
 };
 
+const and: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Boolean] },
+    { name: "b", types: [CoreTypes.Boolean] },
+  ],
+  description: "AND",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} AND ${b}`,
+};
+
+const or: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Boolean] },
+    { name: "b", types: [CoreTypes.Boolean] },
+  ],
+  description: "OR",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} OR ${b}`,
+};
+
 const isNull: OperationSpec = {
-  arguments: [{ name: "value", types: AnyCoreType }],
+  arguments: [
+    { name: "value", types: AnyCoreType },
+    { name: "isNull", types: [CoreTypes.Boolean] },
+  ],
   description: "Returns a boolean indicating whether the value is null",
   returns: [CoreTypes.Boolean],
-  template: ([value]) => `${value} is null`,
+  template: ([value, isNull]) => `${value} is ${isNull ? "" : "not"} null`,
+};
+
+const lessThan: OperationSpec = {
+  arguments: [
+    { name: "a", types: AnyCoreType },
+    { name: "b", types: AnyCoreType },
+  ],
+  description: "less than",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} < b`,
+};
+
+const lessThanOrEqualTo: OperationSpec = {
+  arguments: [
+    { name: "a", types: AnyCoreType },
+    { name: "b", types: AnyCoreType },
+  ],
+  description: "less than or equal to",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} <= b`,
+};
+
+const greaterThan: OperationSpec = {
+  arguments: [
+    { name: "a", types: AnyCoreType },
+    { name: "b", types: AnyCoreType },
+  ],
+  description: "greater than",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} > ${b}`,
+};
+
+const greaterThanOrEqualTo: OperationSpec = {
+  arguments: [
+    { name: "a", types: AnyCoreType },
+    { name: "b", types: AnyCoreType },
+  ],
+  description: "greater than",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} >= ${b}`,
+};
+
+const includes: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "includes",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} LIKE '%${b}%'`,
+};
+
+const notIncludes: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "not includes",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} NOT LIKE '%${b}%'`,
+};
+
+const includesInsensitive: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "includes insensitive",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} ILIKE '%${b}%'`,
+};
+
+const notIncludesInsensitive: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "not includes insensitive",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} NOT ILIKE '%${b}%'`,
+};
+
+const startsWith: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "starts with",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} LIKE '${b}%'`,
+};
+
+const notStartsWith: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "starts with",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} NOT LIKE '${b}%'`,
+};
+
+const startsWithInsensitive: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "starts with insensitive",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} ILIKE '${b}%'`,
+};
+
+const notStartsWithInsensitive: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "starts with insensitive",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} NOT ILIKE '${b}%'`,
+};
+
+const endsWith: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "ends with",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} LIKE '%${b}'`,
+};
+
+const notEndsWith: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "not ends with",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} NOT LIKE '%${b}'`,
+};
+
+const endsWithInsensitive: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "ends with insensitive",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} LIKE '%${b}'`,
+};
+
+const notEndsWithInsensitive: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "not ends with insensitive",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} NOT LIKE '%${b}'`,
+};
+
+const like: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "like",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} LIKE '%${b}'`,
+};
+
+const notLike: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "not like",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} NOT LIKE '%${b}'`,
+};
+
+const likeInsensitive: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "like insensitive",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} ILIKE '%${b}'`,
+};
+
+const notLikeInsensitive: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "not like insensitive",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} NOT ILIKE '%${b}'`,
+};
+
+const similarTo: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "similar to",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} SIMILAR TO '%${b}'`,
+};
+
+const notSimilarTo: OperationSpec = {
+  arguments: [
+    { name: "a", types: [CoreTypes.Text] },
+    { name: "b", types: [CoreTypes.Text] },
+  ],
+  description: "not similar to",
+  returns: [CoreTypes.Boolean],
+  template: ([a, b]) => `${a} NOT SIMILAR TO '%${b}'`,
 };
 
 /* GOAL
@@ -123,9 +366,37 @@ compile(
 */
 
 export const operations: { [key: string]: OperationSpec } = {
-  add,
-  equals,
-  isNull,
+  // Logical comparators
   not,
+  and,
+  or,
+  // Basic boolean operators
+  equalTo,
+  isNull,
+  lessThan,
+  lessThanOrEqualTo,
+  greaterThan,
+  greaterThanOrEqualTo,
+  // String -> Boolean
+  includes,
+  includesInsensitive,
+  notIncludes,
+  notIncludesInsensitive,
+  like,
+  likeInsensitive,
+  notLike,
+  notLikeInsensitive,
+  startsWith,
+  startsWithInsensitive,
+  notStartsWith,
+  notStartsWithInsensitive,
+  endsWith,
+  endsWithInsensitive,
+  notEndsWith,
+  notEndsWithInsensitive,
+  similarTo,
+  notSimilarTo,
+  // Basic math
   floor,
+  add,
 };

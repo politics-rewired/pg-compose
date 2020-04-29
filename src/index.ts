@@ -4,6 +4,7 @@ import { ModuleI } from "./objects/module/core";
 import { run, Task, TaskList } from "./worker";
 import { loadYaml } from "./loaders/yaml";
 import { makeCli } from "./cli-factory";
+import { operations, compile, CompiledExpression } from "./sexp";
 
 export const installModule = async (
   m: ModuleI,
@@ -21,4 +22,6 @@ export const installModule = async (
   await runner(operationList, ModuleProvider.toStatement(context), context);
 };
 
-export { run, loadYaml, Task, TaskList, makeCli };
+const sexp = { operations, compile };
+
+export { run, loadYaml, Task, TaskList, makeCli, sexp, CompiledExpression };
