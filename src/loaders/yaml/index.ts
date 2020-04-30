@@ -161,6 +161,7 @@ export const toTable = (yaml: YamlTableI): TableI => ({
   indexes: flattenKeyToProp(yaml.indexes, "name"),
   previous_name: yaml.previous_name,
   triggers: flattenKeyToProp(yaml.triggers, "timing"),
+  fallback_for: yaml.fallback_for,
 });
 
 export const toTrait = (yaml: YamlTraitI): TraitI => ({

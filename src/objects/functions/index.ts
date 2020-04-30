@@ -300,7 +300,12 @@ const toStatement = (context: RunContextI) =>
     ],
     [
       DropFunctionOperation,
-      op => `DROP FUNCTION "${context.schema}".${op.func.name};`,
+      op =>
+        `DROP FUNCTION "${context.schema}".${
+          op.func.name
+        }(${op.func.arguments
+          .map(p => [p.name, p.type].join(" "))
+          .join(", ")});`,
     ],
     [
       RenameFunctionOperation,

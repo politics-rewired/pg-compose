@@ -184,3 +184,110 @@ describe("extension", () => {
     expect(moduleOperationList).toHaveLength(0);
   });
 });
+
+describe("fallback tables", () => {
+  test("a fallback vanishes if there's another table satisfying the trait", () => {
+    const fallbackTable: TableI = {
+      name: "people",
+      fallback_for: "nameable",
+      implements: [{ trait: "nameable" }],
+      columns: [
+        {
+          name: "first_name",
+          type: "text",
+          nullable: true,
+        },
+      ],
+    };
+
+    const trait: TraitI = {
+      name: "nameable",
+      requires: {
+        columns: [
+          {
+            name: "first_name",
+            type: "text",
+            nullable: true,
+          },
+        ],
+      },
+    };
+
+    const implementation: TableI = {
+      name: "voters",
+      implements: [{ trait: "nameable" }],
+      columns: [{ name: "first_name", type: "text" }],
+    };
+
+    const moduleWithFallback: ModuleI = {
+      tables: [fallbackTable, implementation],
+      traits: [trait],
+    };
+
+    const moduleWithoutFallback: ModuleI = {
+      tables: [fallbackTable, implementation],
+      traits: [trait],
+    };
+
+    const moduleOperationList = ModuleProvider.reconcile(
+      moduleWithFallback,
+      moduleWithoutFallback,
+    );
+    expect(moduleOperationList).toHaveLength(0);
+  });
+
+  test("a fallback persists if there's no other table satisfying the trait", () => {
+    const fallbackTable: TableI = {
+      name: "people",
+      fallback_for: "nameable",
+      implements: [{ trait: "nameable" }],
+      columns: [
+        {
+          name: "first_name",
+          type: "text",
+          nullable: true,
+        },
+      ],
+    };
+
+    const nonFallbackClone: TableI = {
+      name: "people",
+      implements: [{ trait: "nameable" }],
+      columns: [
+        {
+          name: "first_name",
+          type: "text",
+          nullable: true,
+        },
+      ],
+    };
+
+    const trait: TraitI = {
+      name: "nameable",
+      requires: {
+        columns: [
+          {
+            name: "first_name",
+            type: "text",
+          },
+        ],
+      },
+    };
+
+    const moduleWithFallback: ModuleI = {
+      tables: [fallbackTable],
+      traits: [trait],
+    };
+
+    const moduleWithoutFallback: ModuleI = {
+      tables: [nonFallbackClone],
+      traits: [trait],
+    };
+
+    const moduleOperationList = ModuleProvider.reconcile(
+      moduleWithFallback,
+      moduleWithoutFallback,
+    );
+    expect(moduleOperationList).toHaveLength(0);
+  });
+});

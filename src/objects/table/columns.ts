@@ -138,8 +138,11 @@ const matchFn = (desiredTable: TableI) =>
         const desiredNullable =
           desired.nullable === undefined ? true : desired.nullable;
 
+        const currentNullable =
+          current.nullable === undefined ? true : current.nullable;
+
         // Check for a nullable change
-        if (current.nullable !== desiredNullable) {
+        if (currentNullable !== desiredNullable) {
           operations.push({
             code: ColumnOpCodes.SetColumnNullable,
             table: desiredTable,

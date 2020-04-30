@@ -108,7 +108,7 @@ const lessThan: OperationSpec = {
   ],
   description: "less than",
   returns: [CoreTypes.Boolean],
-  template: ([a, b]) => `${a} < b`,
+  template: ([a, b]) => `${a} < ${b}`,
 };
 
 const lessThanOrEqualTo: OperationSpec = {
@@ -118,7 +118,7 @@ const lessThanOrEqualTo: OperationSpec = {
   ],
   description: "less than or equal to",
   returns: [CoreTypes.Boolean],
-  template: ([a, b]) => `${a} <= b`,
+  template: ([a, b]) => `${a} <= ${b}`,
 };
 
 const greaterThan: OperationSpec = {

@@ -299,7 +299,7 @@ export const wrapTask = (
       strippedPayload,
     );
 
-    if (afterFn === undefined) {
+    if (afterFn === undefined || afterFn === "") {
       return await task(decodedPayload, helpers);
     }
 

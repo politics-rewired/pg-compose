@@ -5,6 +5,7 @@ import { run, Task, TaskList } from "./worker";
 import { loadYaml } from "./loaders/yaml";
 import { makeCli } from "./cli-factory";
 import { operations, compile, CompiledExpression } from "./sexp";
+import { JobHelpers } from "graphile-worker";
 
 export const installModule = async (
   m: ModuleI,
@@ -24,4 +25,13 @@ export const installModule = async (
 
 const sexp = { operations, compile };
 
-export { run, loadYaml, Task, TaskList, makeCli, sexp, CompiledExpression };
+export {
+  run,
+  loadYaml,
+  Task,
+  TaskList,
+  makeCli,
+  sexp,
+  CompiledExpression,
+  JobHelpers,
+};

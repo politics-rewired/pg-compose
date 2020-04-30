@@ -81,7 +81,26 @@ const reconcile = (
     return nextTable;
   };
 
-  const expandedTables = (desired.tables || []).map(maybeExpandTable);
+  const withoutSatisfiedFallbackTables = (desired.tables || []).filter(
+    table => {
+      if (table.fallback_for !== undefined) {
+        const trait = table.fallback_for;
+        const otherTableThatImplementsTrait = (desired.tables || [])
+          .filter(other => other.name !== table.name)
+          .find(other =>
+            other.implements?.find(
+              traitImplementation => traitImplementation.trait === trait,
+            ),
+          );
+
+        return otherTableThatImplementsTrait === undefined;
+      }
+
+      return true;
+    },
+  );
+
+  const expandedTables = withoutSatisfiedFallbackTables.map(maybeExpandTable);
 
   const tableOperations = createOperationsForNameableObject(
     expandedTables,

@@ -172,23 +172,24 @@ const Getter = GetterContract.And(
   }),
 );
 
-const TableSpec = {
-  previous_name: PgIdentifier,
-  indexes: Array(Index),
-  foreign_keys: Array(ForeignKey),
-  checks: Array(CheckConstraint),
-  uniques: Array(UniqueConstraint),
-  implements: Array(TraitImplementation),
-  getters: Array(Getter),
-  triggers: Array(Trigger),
-  rls_enabled: Boolean,
-};
-
 const Table = Record({
   name: PgIdentifier,
   columns: Array(Column),
 })
-  .And(Partial(TableSpec))
+  .And(
+    Partial({
+      previous_name: PgIdentifier,
+      indexes: Array(Index),
+      foreign_keys: Array(ForeignKey),
+      checks: Array(CheckConstraint),
+      uniques: Array(UniqueConstraint),
+      implements: Array(TraitImplementation),
+      getters: Array(Getter),
+      triggers: Array(Trigger),
+      rls_enabled: Boolean,
+      fallback_for: String,
+    }),
+  )
   .withConstraint(
     table => {
       const indexes = table.indexes;
