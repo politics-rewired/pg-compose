@@ -57,10 +57,10 @@ const matchFn = (desiredTable: TableI) =>
     ],
   );
 
-export const makeReconcileForeignKeys = (desiredTable: TableI) => (
+export const makeReconcileForeignKeys = (desiredTable: TableI) => async (
   desired: ForeignKeyI | undefined,
   current: ForeignKeyI | undefined,
-): ForeignKeyOperationType[] => {
+): Promise<ForeignKeyOperationType[]> => {
   const input = [desired, current];
 
   if (ReconcileForeignKeysInput.guard(input)) {

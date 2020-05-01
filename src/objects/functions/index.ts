@@ -187,10 +187,10 @@ export const FunctionOperation = Union(
 
 export type FunctionOperationType = Static<typeof FunctionOperation>;
 
-const reconcile = (
+const reconcile = async (
   desired: FunctionI | undefined,
   current: FunctionI | undefined,
-): FunctionOperationType[] => {
+): Promise<FunctionOperationType[]> => {
   const input = [desired, current];
 
   if (ReconcileFunctionInput.guard(input)) {

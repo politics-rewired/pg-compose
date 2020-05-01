@@ -131,10 +131,10 @@ const matchFn = (desiredTable: TableI) =>
     ],
   );
 
-export const makeReconcileTriggers = (desiredTable: TableI) => (
+export const makeReconcileTriggers = (desiredTable: TableI) => async (
   desired: TriggerI | undefined,
   current: TriggerI | undefined,
-): TriggerOperationType[] => {
+): Promise<TriggerOperationType[]> => {
   const input = [desired, current];
 
   if (ReconcileTriggersInput.guard(input)) {

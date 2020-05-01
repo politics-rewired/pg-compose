@@ -1,6 +1,6 @@
 import { TableI, TraitI, TableExtensionI } from "../table/records";
 import { checkIdempotency } from "../test-helpers";
-import { ModuleProvider } from "./index";
+import { ModuleProvider, rollupDependencies } from "./index";
 import { ModuleI } from "./core";
 
 const eventsTable: TableI = {
@@ -131,7 +131,7 @@ describe("idempotency", () => {
 });
 
 describe("extension", () => {
-  test("extension is applied in a module", () => {
+  test("extension is applied in a module", async () => {
     const baseTable: TableI = {
       name: "people",
       columns: [
@@ -177,7 +177,7 @@ describe("extension", () => {
       ],
     };
 
-    const moduleOperationList = ModuleProvider.reconcile(
+    const moduleOperationList = await ModuleProvider.reconcile(
       moduleWithExtension,
       moduleWithoutExtension,
     );
@@ -186,7 +186,7 @@ describe("extension", () => {
 });
 
 describe("fallback tables", () => {
-  test("a fallback vanishes if there's another table satisfying the trait", () => {
+  test("a fallback vanishes if there's another table satisfying the trait", async () => {
     const fallbackTable: TableI = {
       name: "people",
       fallback_for: "nameable",
@@ -229,14 +229,14 @@ describe("fallback tables", () => {
       traits: [trait],
     };
 
-    const moduleOperationList = ModuleProvider.reconcile(
+    const moduleOperationList = await ModuleProvider.reconcile(
       moduleWithFallback,
       moduleWithoutFallback,
     );
     expect(moduleOperationList).toHaveLength(0);
   });
 
-  test("a fallback persists if there's no other table satisfying the trait", () => {
+  test("a fallback persists if there's no other table satisfying the trait", async () => {
     const fallbackTable: TableI = {
       name: "people",
       fallback_for: "nameable",
@@ -284,10 +284,46 @@ describe("fallback tables", () => {
       traits: [trait],
     };
 
-    const moduleOperationList = ModuleProvider.reconcile(
+    const moduleOperationList = await ModuleProvider.reconcile(
       moduleWithFallback,
       moduleWithoutFallback,
     );
     expect(moduleOperationList).toHaveLength(0);
+  });
+});
+
+describe("module rollups", () => {
+  test("rolling up two modules merges them", async () => {
+    const coreModule: ModuleI = {
+      tables: [
+        {
+          name: "people",
+          columns: [{ name: "first_name", type: "text" }],
+        },
+      ],
+    };
+
+    const externalModule: ModuleI = {
+      tables: [{ name: "events", columns: [{ name: "title", type: "text" }] }],
+    };
+
+    const loader = () => Promise.resolve(externalModule);
+
+    const aggregateModule = await rollupDependencies(coreModule, [loader]);
+
+    const opList = await ModuleProvider.reconcile(
+      {
+        tables: [
+          { name: "events", columns: [{ name: "title", type: "text" }] },
+          {
+            name: "people",
+            columns: [{ name: "first_name", type: "text" }],
+          },
+        ],
+      },
+      aggregateModule,
+    );
+
+    expect(opList).toHaveLength(0);
   });
 });

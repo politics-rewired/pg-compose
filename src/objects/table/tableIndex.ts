@@ -170,10 +170,10 @@ const matchFn = (desiredTable: TableI) =>
     ],
   );
 
-export const makeReconcileIndexes = (desiredTable: TableI) => (
+export const makeReconcileIndexes = (desiredTable: TableI) => async (
   desired: IndexI | undefined,
   current: IndexI | undefined,
-): IndexOperationType[] => {
+): Promise<IndexOperationType[]> => {
   const input = [desired, current];
 
   if (ReconcileIndexInput.guard(input)) {

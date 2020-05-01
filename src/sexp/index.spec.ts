@@ -18,14 +18,14 @@ describe("basic type checking", () => {
 describe("recursive type checking", () => {
   test("adding an integer and the result of an equals operation throws an error", () => {
     expect(() =>
-      compile(["add", [3, ["equals", [5, 5]]]]),
+      compile(["add", [3, ["equalTo", [5, 5]]]]),
     ).toThrowErrorMatchingInlineSnapshot(
       `"Operation add expects one of integer, decimal for b, but the value it was given could be a boolean"`,
     );
   });
 
   test("comparing two integers, one of which is the result of addition compiles", () => {
-    const result = compile(["equals", [3, ["add", [1, 2]]]]);
+    const result = compile(["equalTo", [3, ["add", [1, 2]]]]);
     expect(result.expression).toEqual("(3) = ((1) + (2))");
   });
 });

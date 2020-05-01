@@ -1,6 +1,7 @@
 import { String, Runtype, Static } from "runtypes";
 import { PoolClient } from "pg";
 import { RunContextI } from "../runners";
+import { flatten } from "lodash";
 
 export const PgIdentifier = String.withConstraint(
   s => s.match(/[^a-z0-9_]/) === null,
@@ -20,7 +21,7 @@ interface ObjectProviderCore<ObjectType, OperationType> {
   reconcile: (
     desired: ObjectType,
     current: ObjectType | undefined,
-  ) => OperationType[];
+  ) => Promise<OperationType[]>;
   toStatement: (context: RunContextI) => (operation: OperationType) => string;
   identityFn: IdentityFunction<ObjectType>;
 }
@@ -66,9 +67,9 @@ export const createOperationsForNameableObject = <ObjectType, OperationType>(
   reconcileFn: (
     desired: ObjectType | undefined,
     current: ObjectType | undefined,
-  ) => OperationType[],
+  ) => Promise<OperationType[]>,
   opts?: CreateOperationsOpts | undefined,
-): OperationType[] => {
+): Promise<OperationType[]> => {
   const identityByName: IdentityFunction<ObjectType> = <ObjectType>(
     desired: NameableObject & ObjectType,
     current: NameableObject & ObjectType,
@@ -87,7 +88,7 @@ interface CreateOperationsOpts {
   dropObjects: boolean;
 }
 
-export const createOperationsForObjectWithIdentityFunction = <
+export const createOperationsForObjectWithIdentityFunction = async <
   ObjectType,
   OperationType
 >(
@@ -96,42 +97,42 @@ export const createOperationsForObjectWithIdentityFunction = <
   reconcileFn: (
     desired: ObjectType | undefined,
     current: ObjectType | undefined,
-  ) => OperationType[],
+  ) => Promise<OperationType[]>,
   identityFunction: IdentityFunction<ObjectType>,
   opts: CreateOperationsOpts | undefined = {
     dropObjects: true,
   },
-): OperationType[] => {
+): Promise<OperationType[]> => {
   const dObjects = desiredObjects || [];
   const cObjects = currentObjects || [];
 
   // Accumulate create or alter operations
-  const createOrAlterOperations: OperationType[] = dObjects.reduce(
-    (acc: OperationType[], desired) => {
-      const current = cObjects.find(current =>
-        identityFunction(desired, current),
-      );
+  const createOrAlterOperations: OperationType[] = flatten(
+    await Promise.all(
+      dObjects.map(async desired => {
+        const current = cObjects.find(current =>
+          identityFunction(desired, current),
+        );
 
-      return acc.concat(reconcileFn(desired, current));
-    },
-    [],
+        return reconcileFn(desired, current);
+      }),
+    ),
   );
 
   if (opts.dropObjects === false) {
     return createOrAlterOperations;
   }
 
-  const dropOperations: OperationType[] = cObjects.reduce(
-    (acc: OperationType[], current) => {
-      const desired = dObjects.find(desired =>
-        identityFunction(desired, current),
-      );
+  const dropOperations: OperationType[] = flatten(
+    await Promise.all(
+      cObjects.map(async (current: ObjectType) => {
+        const desired = dObjects.find(desired =>
+          identityFunction(desired, current),
+        );
 
-      return acc.concat(
-        desired === undefined ? reconcileFn(undefined, current) : [],
-      );
-    },
-    [],
+        return desired === undefined ? reconcileFn(undefined, current) : [];
+      }),
+    ),
   );
 
   return createOrAlterOperations.concat(dropOperations);

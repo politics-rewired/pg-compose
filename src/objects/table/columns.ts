@@ -164,10 +164,10 @@ const matchFn = (desiredTable: TableI) =>
     ],
   );
 
-export const makeReconcileColumns = (desiredTable: TableI) => (
+export const makeReconcileColumns = (desiredTable: TableI) => async (
   desired: ColumnI | undefined,
   current: ColumnI | undefined,
-): ColumnOperationType[] => {
+): Promise<ColumnOperationType[]> => {
   const input = [desired, current];
 
   if (ReconcileColumnsInput.guard(input)) {

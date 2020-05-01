@@ -21,71 +21,34 @@ import { RunContextI } from "../../runners";
 
 export type ModuleOperationType = AllTableOperationType | FunctionOperationType;
 
-const reconcile = (
+type ModuleLoader = () => Promise<ModuleI>;
+
+const DEPENDENCY_REQUIRE_PREFIX = "pgc-";
+
+const reconcile = async (
   desired: ModuleI,
   current: ModuleI | undefined,
-): ModuleOperationType[] => {
-  // Install tables
-  // const shouldDropTables = match(
-  //   [Boolean, x => x],
-  //   [Record({ tables: Boolean }), x => x.tables],
-  // );
+): Promise<ModuleOperationType[]> => {
   const shouldDropTables = false;
 
-  const maybeExpandTable = (table: TableI): TableI => {
-    let nextTable = table;
+  // Expand module with dependencies
+  const moduleLoaders: ModuleLoader[] = [];
 
-    // Apply table extensions
-    const extensionsForTable = (desired.extensions || []).filter(
-      ext => ext.table === table.name,
-    );
+  for (const dependencyName of desired.dependencies || []) {
+    const loader = (await import(
+      DEPENDENCY_REQUIRE_PREFIX + dependencyName
+    )) as ModuleLoader;
+    moduleLoaders.push(loader);
+  }
 
-    for (const extension of extensionsForTable) {
-      nextTable = extendTable(nextTable, extension);
-    }
+  const aggregateDesired = await rollupDependencies(desired, moduleLoaders);
 
-    if (table.implements === undefined) {
-      return nextTable;
-    }
-
-    const implementedTraits = table.implements;
-
-    // Implement all traits
-    for (const traitImplementation of implementedTraits) {
-      const trait = (desired.traits || []).find(
-        t => t.name === traitImplementation.trait,
-      );
-
-      if (trait === undefined) {
-        throw new Error(
-          `Table ${table.name} implements trait ${traitImplementation.trait}, but that trait does not exist`,
-        );
-      }
-
-      const enforcementResult = enforceTrait(trait, table);
-
-      if (enforcementResult !== true) {
-        throw new Error(enforcementResult.join("\n"));
-      }
-
-      if (trait.provides !== undefined) {
-        nextTable = extendTable(
-          nextTable,
-          trait.provides,
-          traitImplementation,
-          trait.requires,
-        );
-      }
-    }
-
-    return nextTable;
-  };
-
-  const withoutSatisfiedFallbackTables = (desired.tables || []).filter(
+  // Removed satisfied fallback tables
+  const withoutSatisfiedFallbackTables = (aggregateDesired.tables || []).filter(
     table => {
       if (table.fallback_for !== undefined) {
         const trait = table.fallback_for;
-        const otherTableThatImplementsTrait = (desired.tables || [])
+        const otherTableThatImplementsTrait = (aggregateDesired.tables || [])
           .filter(other => other.name !== table.name)
           .find(other =>
             other.implements?.find(
@@ -100,19 +63,24 @@ const reconcile = (
     },
   );
 
-  const expandedTables = withoutSatisfiedFallbackTables.map(maybeExpandTable);
+  // Expand tables with extensions and traits
+  const expandedTables = withoutSatisfiedFallbackTables.map(
+    maybeExpandTable(aggregateDesired),
+  );
 
-  const tableOperations = createOperationsForNameableObject(
+  // Create table operations
+  const tableOperations = await createOperationsForNameableObject(
     expandedTables,
     current === undefined ? [] : current.tables,
     TableProvider.reconcile,
     { dropObjects: shouldDropTables },
   );
 
-  for (const func of desired.functions || []) {
+  // Check function contract satisfaction
+  for (const func of aggregateDesired.functions || []) {
     if (func.implements !== undefined) {
       for (const contractName of func.implements) {
-        const contract = (desired.contracts || []).find(
+        const contract = (aggregateDesired.contracts || []).find(
           c => c.name === contractName,
         );
 
@@ -131,8 +99,9 @@ const reconcile = (
     }
   }
 
-  const functionOperations = createOperationsForObjectWithIdentityFunction(
-    desired.functions,
+  // Create function operations
+  const functionOperations = await createOperationsForObjectWithIdentityFunction(
+    aggregateDesired.functions,
     current === undefined ? [] : current.functions,
     FunctionProvider.reconcile,
     FunctionProvider.identityFn,
@@ -158,4 +127,94 @@ export const ModuleProvider: SingleObjectProvider<
     ),
   type: "single",
   identityFn: (_a: ModuleI, _b: ModuleI) => true,
+};
+
+const maybeExpandTable = (desired: ModuleI) => (table: TableI): TableI => {
+  let nextTable = table;
+
+  // Apply table extensions
+  const extensionsForTable = (desired.extensions || []).filter(
+    ext => ext.table === table.name,
+  );
+
+  for (const extension of extensionsForTable) {
+    nextTable = extendTable(nextTable, extension);
+  }
+
+  if (table.implements === undefined) {
+    return nextTable;
+  }
+
+  const implementedTraits = table.implements;
+
+  // Implement all traits
+  for (const traitImplementation of implementedTraits) {
+    const trait = (desired.traits || []).find(
+      t => t.name === traitImplementation.trait,
+    );
+
+    if (trait === undefined) {
+      throw new Error(
+        `Table ${table.name} implements trait ${traitImplementation.trait}, but that trait does not exist`,
+      );
+    }
+
+    const enforcementResult = enforceTrait(trait, table);
+
+    if (enforcementResult !== true) {
+      throw new Error(enforcementResult.join("\n"));
+    }
+
+    if (trait.provides !== undefined) {
+      nextTable = extendTable(
+        nextTable,
+        trait.provides,
+        traitImplementation,
+        trait.requires,
+      );
+    }
+  }
+
+  return nextTable;
+};
+
+export const rollupDependencies = async (
+  firstModule: ModuleI,
+  loaders: ModuleLoader[],
+): Promise<ModuleI> => {
+  const dependencies = await Promise.all(loaders.map(l => l()));
+
+  for (const nextModule of dependencies) {
+    firstModule.contracts = (firstModule.contracts || []).concat(
+      nextModule.contracts || [],
+    );
+
+    firstModule.cronJobs = (firstModule.cronJobs || []).concat(
+      nextModule.cronJobs || [],
+    );
+
+    firstModule.extensions = (firstModule.extensions || []).concat(
+      nextModule.extensions || [],
+    );
+
+    firstModule.functions = (firstModule.functions || []).concat(
+      nextModule.functions || [],
+    );
+
+    firstModule.tables = (firstModule.tables || []).concat(
+      nextModule.tables || [],
+    );
+
+    firstModule.taskList = Object.assign(
+      {},
+      firstModule.taskList,
+      nextModule.taskList || {},
+    );
+
+    firstModule.traits = (firstModule.traits || []).concat(
+      nextModule.traits || [],
+    );
+  }
+
+  return firstModule;
 };

@@ -16,6 +16,7 @@ import {
   ContractRecord,
 } from "../../objects/functions";
 import { CronJobI, CronJobRecord } from "../../objects/module/cronjobs";
+import { DependencyRecord, DependencyI } from "../../objects/module/dependency";
 
 interface YamlLoaderOpts {
   include: string;
@@ -62,6 +63,10 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     .map(cj => (YamlCronJob.guard(cj) ? toCronJob(cj) : undefined))
     .filter(IsNotUndefined);
 
+  const dependencies = allYamlObjects
+    .map(d => (YamlDependency.guard(d) ? toDependency(d) : undefined))
+    .filter(IsNotUndefined);
+
   for (const table of tables) {
     TableRecord.check(table);
   }
@@ -86,6 +91,10 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     ContractRecord.check(contract);
   }
 
+  for (const dep of dependencies) {
+    DependencyRecord.check(dep);
+  }
+
   return {
     tables,
     traits,
@@ -93,6 +102,7 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     functions,
     contracts,
     cronJobs,
+    dependencies,
   };
 };
 
@@ -126,6 +136,10 @@ const YamlCronJob = Record({
   kind: Literal("CronJob"),
 });
 
+const YamlDependency = Record({
+  kind: Literal("Dependency"),
+});
+
 interface YamlTableI extends Static<typeof YamlTable> {
   [key: string]: any;
 }
@@ -151,6 +165,10 @@ interface YamlCronJobI extends Static<typeof YamlCronJob> {
 }
 
 interface YamlContractI extends Static<typeof YamlContract> {
+  [key: string]: any;
+}
+
+interface YamlDependencyI extends Static<typeof YamlDependency> {
   [key: string]: any;
 }
 
@@ -213,6 +231,10 @@ export const toContract = (yaml: YamlContractI): ContractI => ({
   name: yaml.name,
   arguments: yaml.arguments,
   returns: yaml.returns,
+});
+
+export const toDependency = (yaml: YamlDependencyI): DependencyI => ({
+  module: yaml.module,
 });
 
 const addOrder = <T>(arr: T[]): (T & { order: number })[] =>

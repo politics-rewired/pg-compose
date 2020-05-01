@@ -66,10 +66,10 @@ export const AllTableOperation = Union(
 
 export type AllTableOperationType = Static<typeof AllTableOperation>;
 
-export const reconcileTables = (
+export const reconcileTables = async (
   desired: TableI,
   current: TableI | undefined,
-): AllTableOperationType[] => {
+): Promise<AllTableOperationType[]> => {
   const operations: AllTableOperationType[] = [];
 
   if (current === undefined) {
@@ -88,7 +88,7 @@ export const reconcileTables = (
     }
   }
 
-  const columnOperations = createOperationsForNameableObject<
+  const columnOperations = await createOperationsForNameableObject<
     ColumnI,
     ColumnOperationType
   >(
@@ -98,7 +98,7 @@ export const reconcileTables = (
   );
 
   // Accumulate primary key reconciliations
-  const indexOperations = createOperationsForNameableObject<
+  const indexOperations = await createOperationsForNameableObject<
     IndexI,
     IndexOperationType
   >(
@@ -108,7 +108,7 @@ export const reconcileTables = (
   );
 
   // Accumulate trigger reconciliations
-  const triggerOperations = createOperationsForNameableObject<
+  const triggerOperations = await createOperationsForNameableObject<
     TriggerI,
     TriggerOperationType
   >(
@@ -129,7 +129,7 @@ export const reconcileTables = (
       sortBy(currentFk.references.columns, c => c),
     );
 
-  const foreignKeyOperations = createOperationsForObjectWithIdentityFunction<
+  const foreignKeyOperations = await createOperationsForObjectWithIdentityFunction<
     ForeignKeyI,
     ForeignKeyOperationType
   >(

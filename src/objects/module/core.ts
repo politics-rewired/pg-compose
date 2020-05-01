@@ -4,6 +4,7 @@ import { TestRecord } from "../test";
 import { TableExtension } from "../table/records";
 import { FunctionRecord, ContractRecord } from "../functions";
 import { CronJobRecord } from "./cronjobs";
+import { DependencyRecord } from "./dependency";
 import { TaskList } from "../../worker";
 
 export const ModuleRecord = Partial({
@@ -14,6 +15,7 @@ export const ModuleRecord = Partial({
   functions: Array(FunctionRecord),
   contracts: Array(ContractRecord),
   cronJobs: Array(CronJobRecord),
+  dependencies: Array(DependencyRecord),
 });
 
 export interface ModuleI extends Static<typeof ModuleRecord> {

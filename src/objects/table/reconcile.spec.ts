@@ -3,7 +3,7 @@ import { TableI } from "./records";
 import { ColumnOpCodes, CreateColumnOperation } from "./columns";
 
 describe("table migrations", () => {
-  test("should return a create table operation", () => {
+  test("should return a create table operation", async () => {
     const desired: TableI = {
       name: "people",
       columns: [
@@ -20,13 +20,13 @@ describe("table migrations", () => {
       ],
     };
 
-    const operations = reconcileTables(desired, undefined);
+    const operations = await reconcileTables(desired, undefined);
 
     expect(operations[0]).toHaveProperty("code");
     expect(operations[0].code).toEqual(TableOpCodes.CreateTable);
   });
 
-  test("should return a create table operation", () => {
+  test("should return a create table operation", async () => {
     const desired: TableI = {
       name: "people_2",
       previous_name: "people",
@@ -60,13 +60,13 @@ describe("table migrations", () => {
       ],
     };
 
-    const operations = reconcileTables(desired, current);
+    const operations = await reconcileTables(desired, current);
 
     expect(operations[0]).toHaveProperty("code");
     expect(operations[0].code).toEqual(TableOpCodes.RenameTable);
   });
 
-  test("should return a create column operation", () => {
+  test("should return a create column operation", async () => {
     const desiredTables: TableI = {
       name: "people",
       columns: [
@@ -94,7 +94,7 @@ describe("table migrations", () => {
       ],
     };
 
-    const operations = reconcileTables(desiredTables, currentTables);
+    const operations = await reconcileTables(desiredTables, currentTables);
 
     const op = operations[0];
 
@@ -106,7 +106,7 @@ describe("table migrations", () => {
     }
   });
 
-  test("should return a rename column operation", () => {
+  test("should return a rename column operation", async () => {
     const desired: TableI = {
       name: "people",
       columns: [
@@ -140,13 +140,13 @@ describe("table migrations", () => {
       ],
     };
 
-    const operations = reconcileTables(desired, current);
+    const operations = await reconcileTables(desired, current);
 
     const op = operations[0];
     expect(op.code).toBe(ColumnOpCodes.RenameColumn);
   });
 
-  test("should return  change data type and nullable operations", () => {
+  test("should return  change data type and nullable operations", async () => {
     const desired: TableI = {
       name: "people",
       columns: [
@@ -170,7 +170,7 @@ describe("table migrations", () => {
       ],
     };
 
-    const operations = reconcileTables(desired, current);
+    const operations = await reconcileTables(desired, current);
 
     const op1 = operations[0];
     const op2 = operations[1];
@@ -181,7 +181,7 @@ describe("table migrations", () => {
     expect(op3.code).toBe(ColumnOpCodes.SetColumnDataType);
   });
 
-  test("should return drop column operations", () => {
+  test("should return drop column operations", async () => {
     const desired: TableI = {
       name: "people",
       columns: [
@@ -209,7 +209,7 @@ describe("table migrations", () => {
       ],
     };
 
-    const operations = reconcileTables(desired, current);
+    const operations = await reconcileTables(desired, current);
     expect(operations[0].code).toBe(ColumnOpCodes.DropColumn);
   });
 });

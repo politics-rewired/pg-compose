@@ -30,6 +30,7 @@ export {
   loadYaml,
   Task,
   TaskList,
+  ModuleI,
   makeCli,
   sexp,
   CompiledExpression,
