@@ -1,10 +1,27 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+**Table of Contents** _generated with
+[DocToc](https://github.com/thlorenz/doctoc)_
+
+- [pg-compose](#pg-compose)
+  - [Installation](#installation)
+  - [Basic CLI Usage](#basic-cli-usage)
+  - [Adding Tasks](#adding-tasks)
+    - [After and Context Hooks](#after-and-context-hooks)
+    - [Secret Management](#secret-management)
+  - [Packaging Your Module](#packaging-your-module)
+    - [What are packages?](#what-are-packages)
+    - [Preparing a Package](#preparing-a-package)
+    - [Preparing a Typescript Package](#preparing-a-typescript-package)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # pg-compose
 
 A system for declarative Postgresql migrations, tests, and more.
 
 TODO: Explanation of what this is and what it's for.
-
-[TOC]
 
 ## Installation
 
