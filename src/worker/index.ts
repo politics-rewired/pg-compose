@@ -304,7 +304,12 @@ export const wrapTask = (
     }
 
     const result = await task(decodedPayload, helpers);
-    const query = `select * from ${afterFn}($1, $2, $3)`;
-    await helpers.query(query, [strippedPayload, result, context]);
+    const query = `select * from ${afterFn}($1::json, $2::json, $3::json)`;
+
+    await helpers.query(query, [
+      JSON.stringify(strippedPayload || {}),
+      JSON.stringify(result || {}),
+      JSON.stringify(context || {}),
+    ]);
   };
 };

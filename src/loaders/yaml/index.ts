@@ -191,7 +191,10 @@ export const toTrait = (yaml: YamlTraitI): TraitI => ({
     triggers: addOrder(
       flattenKeyToProp(yaml.provides ? yaml.provides.triggers : {}, "timing"),
     ),
-    columns: flattenKeyToProp(yaml.provides.columns, "name"),
+    columns: flattenKeyToProp(
+      yaml.provides ? yaml.provides.columns : {},
+      "name",
+    ),
   },
 });
 
@@ -218,6 +221,7 @@ export const toFunction = (yaml: YamlFunctionI): FunctionI => ({
   returns: yaml.returns,
   volatility: yaml.volatility,
   body: yaml.body,
+  requires: yaml.requires,
 });
 
 export const toCronJob = (yaml: YamlCronJobI): CronJobI => ({
