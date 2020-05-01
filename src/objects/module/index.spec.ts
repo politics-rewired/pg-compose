@@ -327,3 +327,62 @@ describe("module rollups", () => {
     expect(opList).toHaveLength(0);
   });
 });
+
+describe("function body trait replacements", () => {
+  test("can insert a nameable", async () => {
+    const toExpand: ModuleI = {
+      tables: [
+        {
+          name: "people",
+          columns: [{ name: "given_name", type: "text" }],
+          implements: [
+            {
+              trait: "nameable",
+              via: { columns: { first_name: "given_name" } },
+            },
+          ],
+        },
+      ],
+      traits: [
+        {
+          name: "nameable",
+          requires: { columns: [{ name: "first_name", type: "text" }] },
+        },
+      ],
+      functions: [
+        {
+          name: "insert_into_nameable",
+          arguments: [{ name: "first_name", type: "text" }],
+          language: "sql",
+          security: "definer",
+          volatility: "volatile",
+          requires: [{ trait: "nameable" }],
+          returns: "void",
+          body:
+            "insert into {{ nameable }} ({{ first_name }}) values (insert_into_nameable.first_name)",
+        },
+      ],
+    };
+
+    const toExpandTo: ModuleI = {
+      tables: [
+        { name: "people", columns: [{ name: "given_name", type: "text" }] },
+      ],
+      functions: [
+        {
+          name: "insert_into_nameable",
+          arguments: [{ name: "first_name", type: "text" }],
+          language: "sql",
+          security: "definer",
+          volatility: "volatile",
+          returns: "void",
+          body:
+            "insert into people (given_name) values (insert_into_nameable.first_name)",
+        },
+      ],
+    };
+
+    const opList = await ModuleProvider.reconcile(toExpand, toExpandTo);
+    expect(opList).toHaveLength(0);
+  });
+});

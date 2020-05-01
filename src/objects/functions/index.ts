@@ -38,6 +38,7 @@ export const FunctionRecord = Record({
   Partial({
     previous_name: PgIdentifier,
     implements: Array(String),
+    requires: Array(Record({ trait: String })),
   }),
 );
 

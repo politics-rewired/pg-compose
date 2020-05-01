@@ -8,11 +8,13 @@ import {
 import { render } from "mustache";
 
 const identity = (
+  _table: TableI,
   _traitImplementation: TraitImplementationI | undefined,
   _traitRequirement: TraitRequirementI | undefined,
 ) => (x: any) => x;
 
 const makeTransformTrigger = (
+  table: TableI,
   traitImplementation: TraitImplementationI | undefined,
   traitRequirement: TraitRequirementI | undefined,
 ) => (trigger: TriggerI) => {
@@ -31,12 +33,15 @@ const makeTransformTrigger = (
     {},
   );
 
+  traitVars[traitImplementation.trait] = table.name;
+
   return Object.assign({}, trigger, {
     body: render(trigger.body, traitVars),
   });
 };
 
 type Transformer<T> = (
+  table: TableI,
   TraitImplementation: TraitImplementationI | undefined,
   traitRequirement: TraitRequirementI | undefined,
 ) => (el: T) => T;
@@ -61,7 +66,7 @@ export const extendTable = (
   for (const [prop, transformer] of propsWithTransformers) {
     result[prop] = (table[prop] || []).concat(
       (extension[prop] || []).map((el: any) =>
-        transformer(traitImplementation, traitRequirement)(el),
+        transformer(table, traitImplementation, traitRequirement)(el),
       ),
     );
   }
