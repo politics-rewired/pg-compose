@@ -236,9 +236,9 @@ const TraitRequirement = Partial({
 
 const Trait = Record({
   name: String,
-  requires: TraitRequirement,
 }).And(
   Partial({
+    requires: TraitRequirement,
     provides: TableExtensionSpec,
   }),
 );

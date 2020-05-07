@@ -14,15 +14,17 @@ export const enforceTrait = (trait: TraitI, table: TableI): true | string[] => {
     );
   }
 
+  const traitRequirement = trait.requires || {};
+
   if (
-    trait.requires.columns !== undefined &&
-    trait.requires.columns.length > 0
+    traitRequirement.columns !== undefined &&
+    traitRequirement.columns.length > 0
   ) {
     const columnImplementations = implementation.via
       ? implementation.via.columns || {}
       : {};
 
-    for (const requiredColumn of trait.requires.columns) {
+    for (const requiredColumn of traitRequirement.columns) {
       const columnImplementation =
         columnImplementations[requiredColumn.name] || requiredColumn.name;
 
@@ -74,14 +76,14 @@ export const enforceTrait = (trait: TraitI, table: TableI): true | string[] => {
   }
 
   if (
-    trait.requires.getters !== undefined &&
-    trait.requires.getters.length > 0
+    traitRequirement.getters !== undefined &&
+    traitRequirement.getters.length > 0
   ) {
     const getterImplementations = implementation.via
       ? implementation.via.getters || {}
       : {};
 
-    for (const requiredgetter of trait.requires.getters) {
+    for (const requiredgetter of traitRequirement.getters) {
       const getterImplementation =
         getterImplementations[requiredgetter.name] || requiredgetter.name;
 

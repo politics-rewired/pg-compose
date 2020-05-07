@@ -242,7 +242,7 @@ const maybeExpandFunction = (desired: ModuleI) => (
     i => i.trait === requiredTraitName,
   );
 
-  const bodyVars = (requiredTrait.requires.columns || []).reduce(
+  const bodyVars = ((requiredTrait.requires || {}).columns || []).reduce(
     (acc, col) =>
       Object.assign(acc, {
         [col.name]:
