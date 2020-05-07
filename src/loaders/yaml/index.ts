@@ -185,7 +185,10 @@ export const toTable = (yaml: YamlTableI): TableI => ({
 export const toTrait = (yaml: YamlTraitI): TraitI => ({
   name: yaml.name,
   requires: {
-    columns: flattenKeyToProp(yaml.requires.columns, "name"),
+    columns: flattenKeyToProp(
+      yaml.requires ? yaml.requires.columns : {},
+      "name",
+    ),
   },
   provides: {
     triggers: addOrder(
