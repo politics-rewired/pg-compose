@@ -1,12 +1,4 @@
-import {
-  Record,
-  Partial,
-  Union,
-  Boolean,
-  Static,
-  String,
-  Literal,
-} from "runtypes";
+import { Record, Partial, Union, Boolean, Static, String } from "runtypes";
 import { PgIdentifier } from "../objects/core";
 import { ModuleOperationType } from "../objects/module";
 import { PoolClient } from "pg";
