@@ -101,7 +101,38 @@ const reconcile = async (
     }
   }
 
-  const expandedFunctions = (aggregateDesired.functions || []).map(
+  // Remove satisfied fallback functions
+  const withoutSatisfiedFallbackFunctions = (
+    aggregateDesired.functions || []
+  ).filter(func => {
+    if (func.fallback_for === undefined) {
+      return true;
+    }
+
+    const contractThatFuncIsFallbackFor = (
+      aggregateDesired.contracts || []
+    ).find(con => con.name === func.fallback_for);
+
+    if (contractThatFuncIsFallbackFor === undefined) {
+      throw new Error(
+        `Func ${func.name} is declared as a fallback for contract ${func.fallback_for}, but that contract does not exist`,
+      );
+    }
+
+    const otherImplementationOfContract = (
+      aggregateDesired.functions || []
+    ).find(
+      otherFunc =>
+        otherFunc.name !== func.name &&
+        (otherFunc.implements || []).includes(
+          contractThatFuncIsFallbackFor.name,
+        ),
+    );
+
+    return otherImplementationOfContract === undefined;
+  });
+
+  const expandedFunctions = withoutSatisfiedFallbackFunctions.map(
     maybeExpandFunction(aggregateDesired),
   );
 

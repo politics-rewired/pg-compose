@@ -2,6 +2,7 @@ import { TableI, TraitI, TableExtensionI } from "../table/records";
 import { checkIdempotency } from "../test-helpers";
 import { ModuleProvider, rollupDependencies } from "./index";
 import { ModuleI } from "./core";
+import { FunctionI, ContractI } from "../functions";
 
 const eventsTable: TableI = {
   name: "events",
@@ -384,5 +385,100 @@ describe("function body trait replacements", () => {
 
     const opList = await ModuleProvider.reconcile(toExpand, toExpandTo);
     expect(opList).toHaveLength(0);
+  });
+});
+
+describe("fallback functions", () => {
+  test("a fallback vanishes if there's another function satisfying the contract", async () => {
+    const fallbackFunc: FunctionI = {
+      name: "add_one",
+      fallback_for: "unary_integer_operator",
+      implements: ["unary_integer_operator"],
+      arguments: [{ name: "in", type: "integer" }],
+      returns: "integer",
+      language: "sql",
+      body: "select in + 1",
+      volatility: "volatile",
+      security: "definer",
+    };
+
+    const contract: ContractI = {
+      name: "unary_integer_operator",
+      arguments: [{ name: "in", type: "integer" }],
+      returns: "integer",
+    };
+
+    const otherImplementation: FunctionI = {
+      name: "add_two",
+      implements: ["unary_integer_operator"],
+      arguments: [{ name: "in", type: "integer" }],
+      returns: "integer",
+      language: "sql",
+      body: "select in + 2",
+      volatility: "volatile",
+      security: "definer",
+    };
+
+    const moduleWithFallback: ModuleI = {
+      functions: [fallbackFunc, otherImplementation],
+      contracts: [contract],
+    };
+
+    const moduleWithoutFallback: ModuleI = {
+      functions: [otherImplementation],
+    };
+
+    const moduleOperationList = await ModuleProvider.reconcile(
+      moduleWithFallback,
+      moduleWithoutFallback,
+    );
+    expect(moduleOperationList).toHaveLength(0);
+  });
+
+  test("a fallback persists if there's not another function satisfying the contract", async () => {
+    const fallbackFunc: FunctionI = {
+      name: "add_one",
+      fallback_for: "unary_integer_operator",
+      implements: ["unary_integer_operator"],
+      arguments: [{ name: "in", type: "integer" }],
+      returns: "integer",
+      language: "sql",
+      body: "select in + 1",
+      volatility: "volatile",
+      security: "definer",
+    };
+
+    const nonFallbackFunc: FunctionI = {
+      name: "add_one",
+      implements: ["unary_integer_operator"],
+      arguments: [{ name: "in", type: "integer" }],
+      returns: "integer",
+      language: "sql",
+      body: "select in + 1",
+      volatility: "volatile",
+      security: "definer",
+    };
+
+    const contract: ContractI = {
+      name: "unary_integer_operator",
+      arguments: [{ name: "in", type: "integer" }],
+      returns: "integer",
+    };
+
+    const moduleWithFallback: ModuleI = {
+      functions: [fallbackFunc],
+      contracts: [contract],
+    };
+
+    const moduleWithoutFallback: ModuleI = {
+      functions: [nonFallbackFunc],
+      contracts: [contract],
+    };
+
+    const moduleOperationList = await ModuleProvider.reconcile(
+      moduleWithFallback,
+      moduleWithoutFallback,
+    );
+    expect(moduleOperationList).toHaveLength(0);
   });
 });

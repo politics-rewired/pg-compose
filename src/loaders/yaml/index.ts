@@ -213,6 +213,13 @@ export const toExtension = (yaml: YamlExtensionI): TableExtensionI => ({
   triggers: flattenKeyToProp(yaml.triggers || {}, "timing"),
 });
 
+export const toCronJob = (yaml: YamlCronJobI): CronJobI => ({
+  name: yaml.name,
+  time_zone: yaml.time_zone,
+  pattern: yaml.pattern,
+  task_name: yaml.task_name,
+});
+
 export const toFunction = (yaml: YamlFunctionI): FunctionI => ({
   name: yaml.name,
   language: yaml.language,
@@ -222,13 +229,7 @@ export const toFunction = (yaml: YamlFunctionI): FunctionI => ({
   volatility: yaml.volatility,
   body: yaml.body,
   requires: yaml.requires,
-});
-
-export const toCronJob = (yaml: YamlCronJobI): CronJobI => ({
-  name: yaml.name,
-  time_zone: yaml.time_zone,
-  pattern: yaml.pattern,
-  task_name: yaml.task_name,
+  fallback_for: yaml.fall_back_for,
 });
 
 export const toContract = (yaml: YamlContractI): ContractI => ({
