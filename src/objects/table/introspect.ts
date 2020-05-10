@@ -225,10 +225,11 @@ export const introspectTriggers = async (
         func.prosrc as body,
         lang.lanname as language,
 
-        case 
-          when trig.tgqual is null then null
-          else pg_get_expr(trig.tgqual, tab.oid, true)
-        end as when_cond,
+        case
+          when pg_has_role(tab.relowner, 'USAGE'::text) 
+            THEN (regexp_match(pg_get_triggerdef(trig.oid), '.{35,} WHEN \((.+)\) EXECUTE PROCEDURE'::text))[1]
+          else NULL::text
+        end::text AS when_cond,
 
         COALESCE(
           CASE WHEN (tgtype::int::bit(7) & b'0000010')::int = 0 THEN NULL ELSE 'before' END,
@@ -249,6 +250,7 @@ export const introspectTriggers = async (
         ON lang.oid = func.prolang
       WHERE tab.relnamespace = to_regnamespace($1)::oid
         AND tab.relname = $2
+        AND lang.lanname <> 'internal'
     `,
     [context.schema, tableIdentifier],
   );
