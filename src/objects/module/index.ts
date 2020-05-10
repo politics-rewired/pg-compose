@@ -42,7 +42,7 @@ const reconcile = async (
     if (typeof loader === "function") {
       moduleLoaders.push(loader as ModuleLoader);
     } else if (typeof loader.default === "function") {
-      moduleLoaders.push(loader as ModuleLoader);
+      moduleLoaders.push(loader.default as ModuleLoader);
     } else {
       throw new Error(
         `Dependency error: ${dependency.module} does not export a default that loads a module`,
