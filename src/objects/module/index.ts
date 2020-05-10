@@ -37,8 +37,17 @@ const reconcile = async (
   const moduleLoaders: ModuleLoader[] = [];
 
   for (const dependency of desired.dependencies || []) {
-    const loader = require(`${DEPENDENCY_REQUIRE_PREFIX}${dependency.module}`) as ModuleLoader;
-    moduleLoaders.push(loader);
+    const loader = require(`${DEPENDENCY_REQUIRE_PREFIX}${dependency.module}`);
+
+    if (typeof loader === "function") {
+      moduleLoaders.push(loader as ModuleLoader);
+    } else if (typeof loader.default === "function") {
+      moduleLoaders.push(loader as ModuleLoader);
+    } else {
+      throw new Error(
+        `Dependency error: ${dependency.module} does not export a default that loads a module`,
+      );
+    }
   }
 
   const aggregateDesired = await rollupDependencies(desired, moduleLoaders);
