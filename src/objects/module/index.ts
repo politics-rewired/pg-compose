@@ -36,9 +36,9 @@ const reconcile = async (
   // Expand module with dependencies
   const moduleLoaders: ModuleLoader[] = [];
 
-  for (const dependencyName of desired.dependencies || []) {
+  for (const dependency of desired.dependencies || []) {
     const loader = (await import(
-      DEPENDENCY_REQUIRE_PREFIX + dependencyName
+      DEPENDENCY_REQUIRE_PREFIX + dependency.module
     )) as ModuleLoader;
     moduleLoaders.push(loader);
   }
