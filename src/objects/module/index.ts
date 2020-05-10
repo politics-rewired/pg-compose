@@ -177,7 +177,12 @@ export const rollupDependencies = async (
   firstModule: ModuleI,
   loaders: ModuleLoader[],
 ): Promise<ModuleI> => {
-  const dependencies = await Promise.all(loaders.map(l => l()));
+  const dependencies = await Promise.all(
+    loaders.map(l => {
+      console.log(l);
+      return l();
+    }),
+  );
 
   for (const nextModule of dependencies) {
     firstModule.contracts = (firstModule.contracts || []).concat(
