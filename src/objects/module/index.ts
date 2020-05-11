@@ -20,6 +20,7 @@ import {
 } from "../functions";
 import { RunContextI } from "../../runners";
 import { render } from "mustache";
+import { fromPairs } from "lodash";
 
 export type ModuleOperationType = AllTableOperationType | FunctionOperationType;
 
@@ -179,7 +180,6 @@ export const rollupDependencies = async (
 ): Promise<ModuleI> => {
   const dependencies = await Promise.all(
     loaders.map(l => {
-      console.log(l);
       return l();
     }),
   );
@@ -254,15 +254,14 @@ const maybeExpandFunction = (desired: ModuleI) => (
     i => i.trait === requiredTraitName,
   );
 
-  const bodyVars = ((requiredTrait.requires || {}).columns || []).reduce(
-    (acc, col) =>
-      Object.assign(acc, {
-        [col.name]:
-          implementation!.via && implementation!.via.columns
-            ? implementation!.via.columns[col.name]
-            : col.name,
-      }),
-    {},
+  const bodyVars = fromPairs(
+    ((requiredTrait.requires || {}).columns || []).map(col => [
+      col.name,
+      (implementation!.via &&
+        implementation!.via.columns &&
+        implementation!.via.columns[col.name]) ||
+        col.name,
+    ]),
   );
 
   bodyVars[requiredTraitName] = tableThatImplementsTrait.name;

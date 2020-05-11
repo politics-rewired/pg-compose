@@ -26,7 +26,9 @@ const makeTransformTrigger = (
     (acc, col) =>
       Object.assign(acc, {
         [col.name]:
-          traitImplementation.via && traitImplementation.via.columns
+          traitImplementation.via &&
+          traitImplementation.via.columns &&
+          traitImplementation.via.columns[col.name]
             ? traitImplementation.via.columns[col.name]
             : col.name,
       }),
