@@ -137,7 +137,7 @@ const test = (taskList?: TaskList) => async (argv: CliOpts) => {
 const run = (taskList?: TaskList) => async (argv: CliOpts) => {
   const pool = new Pool({ connectionString: argv.database });
 
-  await runWorkerMigrations(pool);
+  await runWorkerMigrations({ pgPool: pool });
 
   const m = await loadYaml({
     include: argv.files,
