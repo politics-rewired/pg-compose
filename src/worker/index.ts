@@ -1,6 +1,7 @@
 import {
   run as runWorker,
   runTaskListOnce as runGraphileWorkerTaskListOnce,
+  runMigrations as runGraphileWorkerMigrations,
   Task as GraphileWorkerTask,
   JobHelpers,
   RunnerOptions as WorkerRunnerOptions,
@@ -103,11 +104,14 @@ export const runTaskListOnce = async (
   await runGraphileWorkerTaskListOnce({}, taskList, client);
 };
 
-export const migrate = async (pgPool: Pool) => {
-  const worker = await runWorker({ pgPool, taskList: {} });
-  const scheduler = await runScheduler({ pgPool });
+export const runMigrations = async (
+  opts: Omit<ComposeWorkerOptions, "encryptionSecret">,
+) => {
+  const { pgPool } = opts;
 
-  await worker.stop();
+  await runGraphileWorkerMigrations(opts);
+  const scheduler = await runScheduler(opts);
+
   await scheduler.stop();
 
   const client = await pgPool.connect();

@@ -1,7 +1,7 @@
 import { ModuleProvider } from "./objects/module";
 import { Runner, RunContextI } from "./runners";
 import { ModuleI } from "./objects/module/core";
-import { run, Task, TaskList } from "./worker";
+import { run, runMigrations, Task, TaskList } from "./worker";
 import { loadYaml } from "./loaders/yaml";
 import { makeCli } from "./cli-factory";
 import { operations, compile, CompiledExpression } from "./sexp";
@@ -27,6 +27,7 @@ const sexp = { operations, compile };
 
 export {
   run,
+  runMigrations,
   loadYaml,
   Task,
   TaskList,

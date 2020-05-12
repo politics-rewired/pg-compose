@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import {
-  migrate,
+  runMigrations,
   encryptSecret,
   GraphileSecrets,
   getSecret,
@@ -38,7 +38,7 @@ const makeTaskList = (client: PoolClient, cryptr: Cryptr): TaskList => ({
 describe("worker secrets, task wrapping, and after functions", () => {
   beforeAll(async () => {
     await pool.query("drop schema if exists graphile_secrets cascade;");
-    await migrate(pool);
+    await runMigrations({ pgPool: pool });
   });
 
   test("management: symmetric encryption job - inserting a secret causes replacement w/ encrypted secret", async () => {
