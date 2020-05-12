@@ -13,7 +13,11 @@ import { runTest, setupTests } from "./objects/test";
 import * as tape from "tape";
 import { watch } from "chokidar";
 import * as glob from "glob";
-import { migrate as migrateWorker, run as runWorker, TaskList } from "./worker";
+import {
+  runMigrations as runWorkerMigrations,
+  run as runWorker,
+  TaskList,
+} from "./worker";
 
 // const submit = Query.prototype.submit;
 // Query.prototype.submit = function() {
@@ -133,7 +137,7 @@ const test = (taskList?: TaskList) => async (argv: CliOpts) => {
 const run = (taskList?: TaskList) => async (argv: CliOpts) => {
   const pool = new Pool({ connectionString: argv.database });
 
-  await migrateWorker(pool);
+  await runWorkerMigrations(pool);
 
   const m = await loadYaml({
     include: argv.files,
