@@ -28,16 +28,11 @@ type ModuleLoader = () => Promise<ModuleI>;
 
 const DEPENDENCY_REQUIRE_PREFIX = "pgc-";
 
-const reconcile = async (
-  desired: ModuleI,
-  current: ModuleI | undefined,
-): Promise<ModuleOperationType[]> => {
-  const shouldDropTables = false;
-
+export const rollupModule = (m: ModuleI) => {
   // Expand module with dependencies
   const moduleLoaders: ModuleLoader[] = [];
 
-  for (const dependency of desired.dependencies || []) {
+  for (const dependency of m.dependencies || []) {
     const loader = require(`${DEPENDENCY_REQUIRE_PREFIX}${dependency.module}`);
 
     if (typeof loader === "function") {
@@ -51,7 +46,16 @@ const reconcile = async (
     }
   }
 
-  const aggregateDesired = await rollupDependencies(desired, moduleLoaders);
+  return rollupDependencies(m, moduleLoaders);
+};
+
+const reconcile = async (
+  desired: ModuleI,
+  current: ModuleI | undefined,
+): Promise<ModuleOperationType[]> => {
+  const shouldDropTables = false;
+
+  const aggregateDesired = await rollupModule(desired);
 
   // Removed satisfied fallback tables
   const withoutSatisfiedFallbackTables = (aggregateDesired.tables || []).filter(

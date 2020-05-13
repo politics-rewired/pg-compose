@@ -1,5 +1,6 @@
 import { Loader } from "../core";
 import { ModuleI } from "../../objects/module/core";
+import { rollupModule } from "../../objects/module";
 import { Record, Literal, Static } from "runtypes";
 import { TableI, TraitI, TableExtensionI } from "../../objects/table/records";
 import * as glob from "glob";
@@ -95,7 +96,7 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     DependencyRecord.check(dep);
   }
 
-  return {
+  const m: ModuleI = {
     tables,
     traits,
     tests,
@@ -104,6 +105,8 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
     cronJobs,
     dependencies,
   };
+
+  return rollupModule(m);
 };
 
 const IsNotUndefined = <T>(x: T | undefined): x is T => x !== undefined;
