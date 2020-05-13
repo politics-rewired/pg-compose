@@ -1,7 +1,7 @@
 import { ModuleProvider } from "./objects/module";
 import { Runner, RunContextI } from "./runners";
 import { ModuleI } from "./objects/module/core";
-import { run, runMigrations, Task, TaskList } from "./worker";
+import { run, runMigrations, Task, TaskList, PgComposeWorker } from "./worker";
 import { loadYaml } from "./loaders/yaml";
 import { makeCli } from "./cli-factory";
 import { operations, compile, CompiledExpression } from "./sexp";
@@ -36,4 +36,5 @@ export {
   sexp,
   CompiledExpression,
   JobHelpers,
+  PgComposeWorker,
 };

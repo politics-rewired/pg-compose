@@ -36,7 +36,7 @@ type ComposeWorkerOptions = {
   "connectionString" | "schema" | "schedules" | "logger"
 >;
 
-interface PgComposeWorker {
+export interface PgComposeWorker {
   stop: () => Promise<void>;
   setSecret: (secretRef: string, unencryptedSecret: string) => Promise<void>;
   addJob: AddJobFunction;
