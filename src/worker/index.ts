@@ -7,6 +7,7 @@ import {
   RunnerOptions as WorkerRunnerOptions,
   TaskList as GraphileWorkerTaskList,
   AddJobFunction,
+  Logger,
 } from "graphile-worker";
 
 import {
@@ -29,9 +30,10 @@ type PoolOrPoolClient = Pool | PoolClient;
 type ComposeWorkerOptions = {
   encryptionSecret: string;
   pgPool: Pool;
+  logger: Logger;
 } & Omit<
   WorkerRunnerOptions & SchedulerRunnerOptions,
-  "connectionString" | "schema" | "schedules"
+  "connectionString" | "schema" | "schedules" | "logger"
 >;
 
 interface PgComposeWorker {
