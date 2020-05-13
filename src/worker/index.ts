@@ -30,7 +30,7 @@ type PoolOrPoolClient = Pool | PoolClient;
 type ComposeWorkerOptions = {
   encryptionSecret: string;
   pgPool: Pool;
-  logger: Logger;
+  logger?: Logger;
 } & Omit<
   WorkerRunnerOptions & SchedulerRunnerOptions,
   "connectionString" | "schema" | "schedules" | "logger"
@@ -112,6 +112,10 @@ export const runMigrations = async (
   const { pgPool } = opts;
 
   await runGraphileWorkerMigrations(opts);
+
+  // Type 'import("/Users/benpacker/work/pg-compose/node_modules/graphile-worker/dist/logger").Logger' is not assignable to type 'import("/Users/benpacker/work/pg-compose/node_modules/graphile-scheduler/node_modules/graphile-worker/dist/logger").Logger'.
+  // Types have separate declarations of a private property '_scope'.
+  // @ts-ignore -
   const scheduler = await runScheduler(opts);
 
   await scheduler.stop();
