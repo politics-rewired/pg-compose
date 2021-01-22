@@ -39,6 +39,7 @@ type ComposeWorkerOptions = {
 export interface PgComposeWorker {
   stop: () => Promise<void>;
   setSecret: (secretRef: string, unencryptedSecret: string) => Promise<void>;
+  getSecret: (secretRef: string) => Promise<string>;
   addJob: AddJobFunction;
 }
 
@@ -88,6 +89,7 @@ export const run = async (
     },
     setSecret: async (secretRef: string, unencryptedSecret: string) =>
       setSecret(pool, secretRef, unencryptedSecret),
+    getSecret: async (secretRef: string) => getSecret(pool, cryptr, secretRef),
     addJob: worker.addJob,
   };
 };
