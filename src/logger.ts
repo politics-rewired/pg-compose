@@ -1,22 +1,22 @@
 import { LogFunctionFactory, Logger } from "graphile-worker";
-import { LogLevel, LogMeta } from "graphile-worker/dist/logger";
+import { LogLevel } from "graphile-worker/dist/logger";
 
 const DefaultLogFactory: LogFunctionFactory = scope => (
-  level: LogLevel,
-  message: string,
-  meta?: LogMeta,
+  level,
+  message,
+  meta,
 ) => {
   switch (level) {
     case LogLevel.DEBUG:
-      return console.debug(scope, message, meta);
+      return console.debug(message, { ...meta, ...scope });
     case LogLevel.INFO:
-      return console.info(scope, message, meta);
+      return console.info(message, { ...meta, ...scope });
     case LogLevel.WARNING:
-      return console.warn(scope, message, meta);
+      return console.warn(message, { ...meta, ...scope });
     case LogLevel.ERROR:
-      return console.error(scope, message, meta);
+      return console.error(message, { ...meta, ...scope });
     default:
-      return console.log(scope, message, meta);
+      return console.log(message, { ...meta, ...scope });
   }
 };
 
