@@ -42,3 +42,14 @@ export const flattenKeyToProp = <T, U>(
 
 export const addOneIndexedOrder = <T>(arr: T[]): (T & { order: number })[] =>
   arr.map((t, idx) => Object.assign({}, t, { order: idx + 1 }));
+
+/**
+ * Convert an Error instance to a plain object, including all its non-iterable properties.
+ * @param err Error to convert to Object
+ * @returns Object representation of the error
+ */
+export const errToObj = (err: any): any =>
+  Object.getOwnPropertyNames(err).reduce<any>((acc, name) => {
+    acc[name] = err[name];
+    return acc;
+  }, {});
