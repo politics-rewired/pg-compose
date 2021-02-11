@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.25](https://github.com/politics-rewired/pg-compose/compare/v0.0.24...v0.0.25) (2021-02-11)
+
+
+### Bug Fixes
+
+* add missing logger ([8764544](https://github.com/politics-rewired/pg-compose/commit/876454489f262296e62469d8143dfb3fcd516dcc))
+
 ### [0.0.24](https://github.com/politics-rewired/pg-compose/compare/v0.0.22...v0.0.24) (2021-02-11)
 
 
