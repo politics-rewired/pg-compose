@@ -13,7 +13,7 @@ export const checkIdempotency = async <ObjectType, OperationType>(
   const client = await pool.connect();
   await client.query("begin");
 
-  const context: RunContextI = { schema: "public", client };
+  const context: RunContextI = { schema: "public", client, logger: DefaultLogger };
 
   const operationList = await object.reconcile(desired, undefined);
   const statements = operationList.map(o => {
