@@ -18,6 +18,7 @@ import {
   run as runWorker,
   TaskList,
 } from "./worker";
+import { DefaultLogger } from "./logger";
 
 // const submit = Query.prototype.submit;
 // Query.prototype.submit = function() {
@@ -65,6 +66,7 @@ const install = (taskList?: TaskList) => async (argv: CliOpts) => {
       schema: argv.schema,
       client,
       outFile: argv.out,
+      logger: DefaultLogger,
     };
 
     await installModule(m, runner, context);
@@ -99,6 +101,7 @@ const test = (taskList?: TaskList) => async (argv: CliOpts) => {
 
     const runContext: RunContextI | ToFileRunContextI = {
       schema: argv.schema,
+      logger: DefaultLogger,
       client,
     };
 
@@ -153,6 +156,7 @@ const run = (taskList?: TaskList) => async (argv: CliOpts) => {
 
   const runContext: RunContextI | ToFileRunContextI = {
     schema: argv.schema,
+    logger: DefaultLogger,
     client,
   };
 

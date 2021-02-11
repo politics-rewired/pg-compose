@@ -24,6 +24,7 @@ import { directRunner } from "../runners";
 import { Record, String, Dictionary, Unknown, Union } from "runtypes";
 import { fromPairs, toPairs } from "lodash";
 import { ModuleI } from "../objects/module/core";
+import { DefaultLogger } from "../logger";
 
 type PoolOrPoolClient = Pool | PoolClient;
 
@@ -130,6 +131,7 @@ export const runMigrations = async (
 
   await installModule(m, directRunner, {
     client,
+    logger: opts.logger ?? DefaultLogger,
     schema: "graphile_secrets",
   });
 

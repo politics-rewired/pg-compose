@@ -1,6 +1,8 @@
 import { Record, Partial, Union, Boolean, Static, String } from "runtypes";
+import { Logger } from "graphile-worker";
 import { PgIdentifier } from "../objects/core";
 import { ModuleOperationType } from "../objects/module";
+import { errToObj } from "../util";
 import { PoolClient } from "pg";
 import { promises as fs } from "fs";
 
@@ -25,10 +27,12 @@ export const ToFileRunContext = RunContext.And(
 
 export interface RunContextI extends Static<typeof RunContext> {
   client: PoolClient;
+  logger: Logger;
 }
 
 export interface ToFileRunContextI extends Static<typeof ToFileRunContext> {
   client: PoolClient;
+  logger: Logger;
 }
 
 type ToStatementFunction<OperationType> = (
@@ -53,11 +57,10 @@ export const directRunner: Runner = async (
     try {
       await context.client.query(statement);
     } catch (ex) {
-      console.error(
-        `Error running operation ${op.code}. Tried statement: \n\n${statement}\n\nGot error: `,
-        ex,
-      );
-      // process.exit(1);
+      context.logger.error(`Error running operation ${op.code}.`, {
+        statement,
+        error: errToObj(ex),
+      });
     }
   }
 };
