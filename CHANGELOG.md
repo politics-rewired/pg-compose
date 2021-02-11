@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.24](https://github.com/politics-rewired/pg-compose/compare/v0.0.22...v0.0.24) (2021-02-11)
+
+
+### Features
+
+* **worker:** expose getSecret ([3cc7435](https://github.com/politics-rewired/pg-compose/commit/3cc74358b4cbfb9b81dd2c54ca8f8dbec21faaa4))
+
+
+### Bug Fixes
+
+* **set_secret:** on conflict do nothing ([#7](https://github.com/politics-rewired/pg-compose/issues/7)) ([41066af](https://github.com/politics-rewired/pg-compose/commit/41066af1cfcaf9bed078c5d22132c6717475fd7d))
+* use configurable logger ([#6](https://github.com/politics-rewired/pg-compose/issues/6)) ([095b03a](https://github.com/politics-rewired/pg-compose/commit/095b03a8c8556235a6e6ec1778bddf76fa1581f0))
+
 ### [0.0.22](https://github.com/politics-rewired/pg-compose/compare/v0.0.21...v0.0.22) (2020-06-19)
 
 
