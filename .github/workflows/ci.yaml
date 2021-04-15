@@ -51,6 +51,6 @@ jobs:
 
       - name: Run Tests
         shell: bash
-        run: yarn test
+        run: yarn test --detectOpenHandles --forceExit
         env:
           TEST_DATABASE_URL: postgres://postgres:postgres@postgres/pg_compose
