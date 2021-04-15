@@ -14,6 +14,7 @@ export const checkIdempotency = async <ObjectType, OperationType>(
 ): Promise<OperationType[]> => {
   const client = await pool.connect();
   await client.query("begin");
+  await client.query('create extension if not exists "uuid-ossp"');
 
   const context: RunContextI = {
     schema: "public",
@@ -51,6 +52,7 @@ export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
 ): Promise<OperationType[]> => {
   const client = await pool.connect();
   await client.query("begin");
+  await client.query('create extension if not exists "uuid-ossp"');
 
   const context: RunContextI = {
     schema: "public",
@@ -100,6 +102,7 @@ export const checkIdempotencyAfterTransitions = async <
 ): Promise<OperationType[]> => {
   const client = await pool.connect();
   await client.query("begin");
+  await client.query('create extension if not exists "uuid-ossp"');
 
   const context: RunContextI = {
     schema: "public",
