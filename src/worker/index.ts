@@ -125,6 +125,7 @@ export const runMigrations = async (
 
   const client = await pgPool.connect();
 
+  await client.query('create extension if not exists "uuid-ossp"');
   await client.query("create schema if not exists graphile_secrets");
 
   const m = await loadYaml({ include: `${__dirname}/graphile-secrets.yaml` });
