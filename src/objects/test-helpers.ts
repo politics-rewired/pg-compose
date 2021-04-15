@@ -41,7 +41,9 @@ export const checkIdempotency = async <ObjectType, OperationType>(
   }
 
   await client.query("rollback");
-  return object.reconcile(desired, current);
+  const result = object.reconcile(desired, current);
+  client.release();
+  return result;
 };
 
 export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
@@ -89,7 +91,9 @@ export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
   }
 
   await client.query("rollback");
-  return object.reconcile(toTest, current);
+  const result = object.reconcile(toTest, current);
+  client.release();
+  return result;
 };
 
 export const checkIdempotencyAfterTransitions = async <
@@ -135,5 +139,7 @@ export const checkIdempotencyAfterTransitions = async <
   }
 
   await client.query("rollback");
-  return object.reconcile(desired, current);
+  const result = object.reconcile(desired, current);
+  client.release();
+  return result;
 };
