@@ -4,7 +4,8 @@ import { DefaultLogger } from "../logger";
 import { RunContextI } from "../runners";
 import { ObjectProvider, PgIdentifierI } from "./core";
 
-const pool = new Pool();
+const connectionString = process.env.TEST_DATABASE_URL;
+const pool = new Pool({ connectionString });
 
 export const checkIdempotency = async <ObjectType, OperationType>(
   object: ObjectProvider<ObjectType, OperationType>,

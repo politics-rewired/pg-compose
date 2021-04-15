@@ -22,7 +22,8 @@ import {
 import Cryptr = require("cryptr");
 import { ModuleI } from "../objects/module/core";
 
-const pool = new Pool();
+const connectionString = process.env.TEST_DATABASE_URL;
+const pool = new Pool({ connectionString });
 
 const clearJobsAndSchedules = async (client: PoolClient): Promise<void> => {
   await client.query("delete from graphile_worker.jobs");
