@@ -1,24 +1,25 @@
-import * as yargs from "yargs";
-import {
-  fileRunner,
-  directRunner,
-  Runner,
-  RunContextI,
-  ToFileRunContextI,
-} from "./runners";
-import { Pool } from "pg";
-import { installModule } from ".";
-import { loadYaml } from "./loaders/yaml";
-import { runTest, setupTests } from "./objects/test";
-import * as tape from "tape";
 import { watch } from "chokidar";
 import * as glob from "glob";
+import { Pool } from "pg";
+import * as tape from "tape";
+import * as yargs from "yargs";
+
+import { installModule } from ".";
+import { loadYaml } from "./loaders/yaml";
+import { DefaultLogger } from "./logger";
+import { runTest, setupTests } from "./objects/test";
 import {
-  runMigrations as runWorkerMigrations,
+  directRunner,
+  fileRunner,
+  RunContextI,
+  Runner,
+  ToFileRunContextI,
+} from "./runners";
+import {
   run as runWorker,
+  runMigrations as runWorkerMigrations,
   TaskList,
 } from "./worker";
-import { DefaultLogger } from "./logger";
 
 // const submit = Query.prototype.submit;
 // Query.prototype.submit = function() {
@@ -55,12 +56,7 @@ const install = (taskList?: TaskList) => async (argv: CliOpts) => {
       m.taskList = taskList;
     }
 
-    const runner: Runner =
-      argv.out === undefined
-        ? true
-          ? directRunner
-          : directRunner
-        : fileRunner;
+    const runner: Runner = argv.out === undefined ? directRunner : fileRunner;
 
     const context: RunContextI | ToFileRunContextI = {
       schema: argv.schema,

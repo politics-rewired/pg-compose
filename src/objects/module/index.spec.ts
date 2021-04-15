@@ -1,8 +1,8 @@
-import { TableI, TraitI, TableExtensionI } from "../table/records";
+import { ContractI, FunctionI } from "../functions";
+import { TableExtensionI, TableI, TraitI } from "../table/records";
 import { checkIdempotency } from "../test-helpers";
-import { ModuleProvider, rollupDependencies } from "./index";
 import { ModuleI } from "./core";
-import { FunctionI, ContractI } from "../functions";
+import { ModuleProvider, rollupDependencies } from "./index";
 
 const eventsTable: TableI = {
   name: "events",

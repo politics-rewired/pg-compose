@@ -1,8 +1,9 @@
-import { checkIdempotency } from "../test-helpers";
 import fc from "fast-check";
-import { TableI, Column } from "./records";
-import { TableProvider } from "./index";
+
 import { PgIdentifier } from "../core";
+import { checkIdempotency } from "../test-helpers";
+import { TableProvider } from "./index";
+import { Column, TableI } from "./records";
 
 const PgIdentifierArbitrary = fc
   .unicodeString(1, 20)

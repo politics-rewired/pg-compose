@@ -1,5 +1,6 @@
-import { Record, Literal, Static, Union, Tuple, match } from "runtypes";
-import { Trigger, Table, TableI, TriggerI } from "./records";
+import { Literal, match, Record, Static, Tuple, Union } from "runtypes";
+
+import { Table, TableI, Trigger, TriggerI } from "./records";
 
 export enum TriggerOpCodes {
   CreateTrigger = "create_trigger",

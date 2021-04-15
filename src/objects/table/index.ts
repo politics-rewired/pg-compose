@@ -1,11 +1,11 @@
-import { Trait, Table, TableI } from "./records";
-import { reconcileTables, AllTableOperationType } from "./reconcile";
 import {
-  SingleObjectProvider,
   identityFunctionForNameableObject,
+  SingleObjectProvider,
 } from "../core";
-import { makeToStatement } from "./statements";
 import { introspectTable } from "./introspect";
+import { AllTableOperationType, reconcileTables } from "./reconcile";
+import { Table, TableI, Trait } from "./records";
+import { makeToStatement } from "./statements";
 
 export const TableProvider: SingleObjectProvider<
   TableI,

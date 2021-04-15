@@ -1,26 +1,27 @@
+import { fromPairs } from "lodash";
+import { render } from "mustache";
 import { match } from "runtypes";
-import { TableProvider } from "../table";
+
+import { RunContextI } from "../../runners";
 import {
   createOperationsForNameableObject,
   createOperationsForObjectWithIdentityFunction,
+  SingleObjectProvider,
 } from "../core";
-import { introspectModule } from "./introspect";
-import { AllTableOperation, AllTableOperationType } from "../table/reconcile";
-import { TableI } from "../table/records";
-import { ModuleI, ModuleRecord } from "./core";
-import { SingleObjectProvider } from "../core";
-import { enforceTrait } from "../table/trait";
-import { extendTable } from "../table/extend";
 import {
-  FunctionProvider,
-  FunctionOperationType,
-  FunctionOperation,
   checkFunctionContractsMatch,
   FunctionI,
+  FunctionOperation,
+  FunctionOperationType,
+  FunctionProvider,
 } from "../functions";
-import { RunContextI } from "../../runners";
-import { render } from "mustache";
-import { fromPairs } from "lodash";
+import { TableProvider } from "../table";
+import { extendTable } from "../table/extend";
+import { AllTableOperation, AllTableOperationType } from "../table/reconcile";
+import { TableI } from "../table/records";
+import { enforceTrait } from "../table/trait";
+import { ModuleI, ModuleRecord } from "./core";
+import { introspectModule } from "./introspect";
 
 export type ModuleOperationType = AllTableOperationType | FunctionOperationType;
 

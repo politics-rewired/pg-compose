@@ -1,24 +1,24 @@
-import { Pool } from "pg";
-import {
-  runMigrations,
-  encryptSecret,
-  GraphileSecrets,
-  getSecret,
-  setSecret,
-  GraphileUnencryptedSecrets,
-  deepCloneWithSecretReplacement,
-  wrapTask,
-  run,
-  runTaskListOnce,
-  Task,
-  TaskList,
-} from "./index";
-import { PoolClient } from "pg";
 import * as faker from "faker";
 import {
-  runTaskListOnce as runGraphileWorkerTaskListOnce,
   JobHelpers,
+  runTaskListOnce as runGraphileWorkerTaskListOnce,
 } from "graphile-worker";
+import { Pool, PoolClient } from "pg";
+
+import {
+  deepCloneWithSecretReplacement,
+  encryptSecret,
+  getSecret,
+  GraphileSecrets,
+  GraphileUnencryptedSecrets,
+  run,
+  runMigrations,
+  runTaskListOnce,
+  setSecret,
+  Task,
+  TaskList,
+  wrapTask,
+} from "./index";
 import Cryptr = require("cryptr");
 import { ModuleI } from "../objects/module/core";
 

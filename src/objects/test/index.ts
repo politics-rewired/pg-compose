@@ -1,10 +1,11 @@
-import { Record, String, Array, Static, Boolean, Partial } from "runtypes";
-import { ModuleI } from "../module/core";
+import { runTaskListOnce } from "graphile-worker";
+import { Array, Boolean, Partial, Record, Static, String } from "runtypes";
+import * as tape from "tape";
+
 import { installModule } from "../..";
 import { RunContextI, Runner } from "../../runners";
-import * as tape from "tape";
-import { runTaskListOnce } from "graphile-worker";
 import { makeWrapTaskList, TaskList } from "../../worker";
+import { ModuleI } from "../module/core";
 import Cryptr = require("cryptr");
 import { render } from "mustache";
 

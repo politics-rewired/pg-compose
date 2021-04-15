@@ -17,6 +17,7 @@ module.exports = {
     es6: true,
   },
   rules: {
+    "no-unused-vars": 0,
     "@typescript-eslint/no-unused-vars": [
       "error",
       {

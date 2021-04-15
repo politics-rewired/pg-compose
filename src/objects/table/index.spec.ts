@@ -1,5 +1,5 @@
-import { TableProvider } from "./index";
 import { checkIdempotency } from "../test-helpers";
+import { TableProvider } from "./index";
 
 describe("after migration, the operation list should be empty", () => {
   test("basic table", async () => {

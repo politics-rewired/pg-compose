@@ -1,9 +1,10 @@
-import { RunContextI } from "../../runners";
-import { ModuleI } from "./core";
-import { TableProvider } from "../table";
-import { FunctionProvider } from "../functions";
 import { PoolClient } from "pg";
+
+import { RunContextI } from "../../runners";
 import { PgIdentifierI } from "../core";
+import { FunctionProvider } from "../functions";
+import { TableProvider } from "../table";
+import { ModuleI } from "./core";
 
 interface PgTables {
   name: string;

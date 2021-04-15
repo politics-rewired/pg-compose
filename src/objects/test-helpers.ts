@@ -1,7 +1,8 @@
-import { ObjectProvider, PgIdentifierI } from "./core";
-import { RunContextI } from "../runners";
 import { Pool } from "pg";
+
 import { DefaultLogger } from "../logger";
+import { RunContextI } from "../runners";
+import { ObjectProvider, PgIdentifierI } from "./core";
 
 const pool = new Pool();
 
@@ -13,7 +14,11 @@ export const checkIdempotency = async <ObjectType, OperationType>(
   const client = await pool.connect();
   await client.query("begin");
 
-  const context: RunContextI = { schema: "public", client, logger: DefaultLogger };
+  const context: RunContextI = {
+    schema: "public",
+    client,
+    logger: DefaultLogger,
+  };
 
   const operationList = await object.reconcile(desired, undefined);
   const statements = operationList.map(o => {
@@ -46,7 +51,11 @@ export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
   const client = await pool.connect();
   await client.query("begin");
 
-  const context: RunContextI = { schema: "public", client, logger: DefaultLogger };
+  const context: RunContextI = {
+    schema: "public",
+    client,
+    logger: DefaultLogger,
+  };
 
   const beforeOperationList = await object.reconcile(before, undefined);
   const beforeStatements = beforeOperationList.map(o =>
@@ -91,7 +100,11 @@ export const checkIdempotencyAfterTransitions = async <
   const client = await pool.connect();
   await client.query("begin");
 
-  const context: RunContextI = { schema: "public", client, logger: DefaultLogger };
+  const context: RunContextI = {
+    schema: "public",
+    client,
+    logger: DefaultLogger,
+  };
 
   let runs = 0;
   let current: ObjectType | undefined = undefined;

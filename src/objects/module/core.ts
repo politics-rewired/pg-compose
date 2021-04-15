@@ -1,11 +1,12 @@
-import { Partial, Static, Array } from "runtypes";
+import { Array, Partial, Static } from "runtypes";
+
+import { TaskList } from "../../worker";
+import { ContractRecord, FunctionRecord } from "../functions";
 import { TableRecord, TraitRecord } from "../table";
-import { TestRecord } from "../test";
 import { TableExtension } from "../table/records";
-import { FunctionRecord, ContractRecord } from "../functions";
+import { TestRecord } from "../test";
 import { CronJobRecord } from "./cronjobs";
 import { DependencyRecord } from "./dependency";
-import { TaskList } from "../../worker";
 
 export const ModuleRecord = Partial({
   tables: Array(TableRecord),

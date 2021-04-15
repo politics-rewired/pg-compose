@@ -1,4 +1,4 @@
-import { Record, String, Static } from "runtypes";
+import { Record, Static, String } from "runtypes";
 
 export const CronJobRecord = Record({
   name: String,

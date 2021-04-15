@@ -1,23 +1,24 @@
-import { Loader } from "../core";
-import { ModuleI } from "../../objects/module/core";
-import { rollupModule } from "../../objects/module";
-import { Record, Literal, Static } from "runtypes";
-import { TableI, TraitI, TableExtensionI } from "../../objects/table/records";
-import * as glob from "glob";
-import { parseAllDocuments } from "yaml";
 import { promises as fs } from "fs";
+import * as glob from "glob";
 import { flatMap } from "lodash";
-import { flattenKeyToProp } from "../../util";
-import { TestI, TestRecord } from "../../objects/test";
-import { TableRecord, TraitRecord } from "../../objects/table";
+import { Literal, Record, Static } from "runtypes";
+import { parseAllDocuments } from "yaml";
+
 import {
-  FunctionRecord,
-  FunctionI,
   ContractI,
   ContractRecord,
+  FunctionI,
+  FunctionRecord,
 } from "../../objects/functions";
+import { rollupModule } from "../../objects/module";
+import { ModuleI } from "../../objects/module/core";
 import { CronJobI, CronJobRecord } from "../../objects/module/cronjobs";
-import { DependencyRecord, DependencyI } from "../../objects/module/dependency";
+import { DependencyI, DependencyRecord } from "../../objects/module/dependency";
+import { TableRecord, TraitRecord } from "../../objects/table";
+import { TableExtensionI, TableI, TraitI } from "../../objects/table/records";
+import { TestI, TestRecord } from "../../objects/test";
+import { flattenKeyToProp } from "../../util";
+import { Loader } from "../core";
 
 interface YamlLoaderOpts {
   include: string;

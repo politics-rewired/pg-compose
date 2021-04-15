@@ -1,13 +1,14 @@
-import { Record, Literal, Static, Union, Tuple, match } from "runtypes";
+import { trim } from "lodash";
+import { Literal, match, Record, Static, Tuple, Union } from "runtypes";
+
 import {
-  TableI,
+  Column,
+  ColumnDefaultI,
+  ColumnFunctionDefault,
   ColumnI,
   Table,
-  Column,
-  ColumnFunctionDefault,
-  ColumnDefaultI,
+  TableI,
 } from "./records";
-import { trim } from "lodash";
 
 export enum ColumnOpCodes {
   CreateColumn = "create_column",

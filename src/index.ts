@@ -1,11 +1,12 @@
-import { ModuleProvider } from "./objects/module";
-import { Runner, RunContextI } from "./runners";
-import { ModuleI } from "./objects/module/core";
-import { run, runMigrations, Task, TaskList, PgComposeWorker } from "./worker";
-import { loadYaml } from "./loaders/yaml";
-import { makeCli } from "./cli-factory";
-import { operations, compile, CompiledExpression } from "./sexp";
 import { JobHelpers } from "graphile-worker";
+
+import { makeCli } from "./cli-factory";
+import { loadYaml } from "./loaders/yaml";
+import { ModuleProvider } from "./objects/module";
+import { ModuleI } from "./objects/module/core";
+import { RunContextI, Runner } from "./runners";
+import { compile, CompiledExpression, operations } from "./sexp";
+import { PgComposeWorker, run, runMigrations, Task, TaskList } from "./worker";
 
 export const installModule = async (
   m: ModuleI,
@@ -26,15 +27,15 @@ export const installModule = async (
 const sexp = { operations, compile };
 
 export {
-  run,
-  runMigrations,
-  loadYaml,
-  Task,
-  TaskList,
-  ModuleI,
-  makeCli,
-  sexp,
   CompiledExpression,
   JobHelpers,
+  loadYaml,
+  makeCli,
+  ModuleI,
   PgComposeWorker,
+  run,
+  runMigrations,
+  sexp,
+  Task,
+  TaskList,
 };

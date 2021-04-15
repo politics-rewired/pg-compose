@@ -1,7 +1,8 @@
-import { String, Runtype, Static } from "runtypes";
-import { PoolClient } from "pg";
-import { RunContextI } from "../runners";
 import { flatten } from "lodash";
+import { PoolClient } from "pg";
+import { Runtype, Static, String } from "runtypes";
+
+import { RunContextI } from "../runners";
 
 export const PgIdentifier = String.withConstraint(
   s => s.match(/[^a-z0-9_]/) === null,

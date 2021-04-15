@@ -1,5 +1,6 @@
+import { Literal, match, Record, Static, Tuple, Union } from "runtypes";
+
 import { ForeignKey, ForeignKeyI, Table, TableI } from "./records";
-import { Tuple, Literal, Record, Union, Static, match } from "runtypes";
 
 export enum ForeignKeyOpCodes {
   CreateForeignKey = "create_foreign_key",
