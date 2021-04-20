@@ -1,9 +1,11 @@
-import { ObjectProvider, PgIdentifierI } from "./core";
-import { RunContextI } from "../runners";
 import { Pool } from "pg";
-import { DefaultLogger } from "../logger";
 
-const pool = new Pool();
+import { DefaultLogger } from "../logger";
+import { RunContextI } from "../runners";
+import { ObjectProvider, PgIdentifierI } from "./core";
+
+const connectionString = process.env.TEST_DATABASE_URL;
+const pool = new Pool({ connectionString });
 
 export const checkIdempotency = async <ObjectType, OperationType>(
   object: ObjectProvider<ObjectType, OperationType>,
@@ -12,8 +14,13 @@ export const checkIdempotency = async <ObjectType, OperationType>(
 ): Promise<OperationType[]> => {
   const client = await pool.connect();
   await client.query("begin");
+  await client.query('create extension if not exists "uuid-ossp"');
 
-  const context: RunContextI = { schema: "public", client, logger: DefaultLogger };
+  const context: RunContextI = {
+    schema: "public",
+    client,
+    logger: DefaultLogger,
+  };
 
   const operationList = await object.reconcile(desired, undefined);
   const statements = operationList.map(o => {
@@ -34,7 +41,9 @@ export const checkIdempotency = async <ObjectType, OperationType>(
   }
 
   await client.query("rollback");
-  return object.reconcile(desired, current);
+  const result = object.reconcile(desired, current);
+  client.release();
+  return result;
 };
 
 export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
@@ -45,8 +54,13 @@ export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
 ): Promise<OperationType[]> => {
   const client = await pool.connect();
   await client.query("begin");
+  await client.query('create extension if not exists "uuid-ossp"');
 
-  const context: RunContextI = { schema: "public", client, logger: DefaultLogger };
+  const context: RunContextI = {
+    schema: "public",
+    client,
+    logger: DefaultLogger,
+  };
 
   const beforeOperationList = await object.reconcile(before, undefined);
   const beforeStatements = beforeOperationList.map(o =>
@@ -77,7 +91,9 @@ export const checkIdempotencyOnSecondTable = async <ObjectType, OperationType>(
   }
 
   await client.query("rollback");
-  return object.reconcile(toTest, current);
+  const result = object.reconcile(toTest, current);
+  client.release();
+  return result;
 };
 
 export const checkIdempotencyAfterTransitions = async <
@@ -90,8 +106,13 @@ export const checkIdempotencyAfterTransitions = async <
 ): Promise<OperationType[]> => {
   const client = await pool.connect();
   await client.query("begin");
+  await client.query('create extension if not exists "uuid-ossp"');
 
-  const context: RunContextI = { schema: "public", client, logger: DefaultLogger };
+  const context: RunContextI = {
+    schema: "public",
+    client,
+    logger: DefaultLogger,
+  };
 
   let runs = 0;
   let current: ObjectType | undefined = undefined;
@@ -118,5 +139,7 @@ export const checkIdempotencyAfterTransitions = async <
   }
 
   await client.query("rollback");
-  return object.reconcile(desired, current);
+  const result = object.reconcile(desired, current);
+  client.release();
+  return result;
 };

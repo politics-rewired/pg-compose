@@ -1,37 +1,38 @@
-import { Record, Literal, Static, Union } from "runtypes";
-import {
-  ColumnI,
-  TableI,
-  Table,
-  IndexI,
-  TriggerI,
-  ForeignKeyI,
-} from "./records";
-import {
-  ColumnOperationType,
-  makeReconcileColumns,
-  ColumnOperation,
-} from "./columns";
+import { isEqual, sortBy } from "lodash";
+import { Literal, Record, Static, Union } from "runtypes";
+
 import {
   createOperationsForNameableObject,
   createOperationsForObjectWithIdentityFunction,
 } from "../core";
 import {
-  IndexOperationType,
-  makeReconcileIndexes,
-  IndexOperation,
-} from "./tableIndex";
+  ColumnOperation,
+  ColumnOperationType,
+  makeReconcileColumns,
+} from "./columns";
 import {
-  TriggerOperationType,
-  makeReconcileTriggers,
-  TriggerOperation,
-} from "./triggers";
-import {
+  ForeignKeyOperation,
   ForeignKeyOperationType,
   makeReconcileForeignKeys,
-  ForeignKeyOperation,
 } from "./foreignKeys";
-import { isEqual, sortBy } from "lodash";
+import {
+  ColumnI,
+  ForeignKeyI,
+  IndexI,
+  Table,
+  TableI,
+  TriggerI,
+} from "./records";
+import {
+  IndexOperation,
+  IndexOperationType,
+  makeReconcileIndexes,
+} from "./tableIndex";
+import {
+  makeReconcileTriggers,
+  TriggerOperation,
+  TriggerOperationType,
+} from "./triggers";
 
 /**
  * -------------------- Tables --------------------

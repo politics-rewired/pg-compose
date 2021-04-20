@@ -1,5 +1,6 @@
-import { TraitI, TableI } from "./records";
 import { String } from "runtypes";
+
+import { TableI, TraitI } from "./records";
 
 export const enforceTrait = (trait: TraitI, table: TableI): true | string[] => {
   const errors = [];

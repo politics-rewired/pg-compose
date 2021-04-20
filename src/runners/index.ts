@@ -1,10 +1,11 @@
-import { Record, Partial, Union, Boolean, Static, String } from "runtypes";
+import { promises as fs } from "fs";
 import { Logger } from "graphile-worker";
+import { PoolClient } from "pg";
+import { Boolean, Partial, Record, Static, String, Union } from "runtypes";
+
 import { PgIdentifier } from "../objects/core";
 import { ModuleOperationType } from "../objects/module";
 import { errToObj } from "../util";
-import { PoolClient } from "pg";
-import { promises as fs } from "fs";
 
 export const RunContext = Record({
   schema: PgIdentifier,

@@ -1,17 +1,18 @@
+import { PoolClient } from "pg";
 import {
-  Record,
-  Partial,
-  String,
   Array,
   Literal,
-  Union,
-  Static,
   match,
+  Partial,
+  Record,
+  Static,
+  String,
   Tuple,
+  Union,
 } from "runtypes";
-import { PgIdentifier, ManyObjectProvider } from "../core";
-import { PoolClient } from "pg";
+
 import { RunContextI } from "../../runners";
+import { ManyObjectProvider, PgIdentifier } from "../core";
 
 const FunctionArgument = Record({
   name: PgIdentifier,

@@ -1,5 +1,5 @@
-import { loadYaml } from "./index";
 import { ModuleRecord } from "../../objects/module/core";
+import { loadYaml } from "./index";
 
 describe("yaml loader", () => {
   test("should produce a valid module", async () => {

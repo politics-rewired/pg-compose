@@ -1,5 +1,6 @@
-import { IndexI, Index, Table, TableI } from "./records";
-import { Record, Literal, Static, Tuple, Union, match } from "runtypes";
+import { Literal, match, Record, Static, Tuple, Union } from "runtypes";
+
+import { Index, IndexI, Table, TableI } from "./records";
 
 export enum IndexOpCodes {
   CreateIndex = "create_index",

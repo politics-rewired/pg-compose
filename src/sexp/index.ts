@@ -1,7 +1,7 @@
-import { match, String, Tuple, Number, Unknown, Array, Union } from "runtypes";
-import { operations } from "./operations";
-
 import { zip } from "lodash";
+import { Array, match, Number, String, Tuple, Union, Unknown } from "runtypes";
+
+import { operations } from "./operations";
 
 // type SExpr = string | ["column", string] | [string, [SExpr, SExpr]];
 type SExpr = string | number | [string, SExpr[]];
@@ -89,4 +89,4 @@ const compile = (sexp: SExpr): CompiledExpression =>
     ],
   )(sexp);
 
-export { operations, compile };
+export { compile, operations };

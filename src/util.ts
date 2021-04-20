@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
+import { flatMap, groupBy } from "lodash";
 import { parse as parseYaml } from "yaml";
-import { groupBy, flatMap } from "lodash";
 
 export const readYaml = (path: string) =>
   parseYaml(readFileSync(path).toString());
@@ -22,7 +22,9 @@ export const flattenKeyToProp = <T, U>(
   obj: { [key: string]: T } | undefined,
   prop: string,
 ): U[] => {
-  if (obj === undefined) return [];
+  if (obj === undefined) {
+    return [];
+  }
 
   const keys = Object.keys(obj);
 

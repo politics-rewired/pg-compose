@@ -1,6 +1,6 @@
+import { ColumnOpCodes, CreateColumnOperation } from "./columns";
 import { reconcileTables, TableOpCodes } from "./reconcile";
 import { TableI } from "./records";
-import { ColumnOpCodes, CreateColumnOperation } from "./columns";
 
 describe("table migrations", () => {
   test("should return a create table operation", async () => {
@@ -26,7 +26,7 @@ describe("table migrations", () => {
     expect(operations[0].code).toEqual(TableOpCodes.CreateTable);
   });
 
-  test("should return a create table operation", async () => {
+  test("should return a rename table operation", async () => {
     const desired: TableI = {
       name: "people_2",
       previous_name: "people",

@@ -1,11 +1,12 @@
+import { render } from "mustache";
+
 import {
-  TableI,
   TableExtensionSpecI,
+  TableI,
   TraitImplementationI,
   TraitRequirementI,
   TriggerI,
 } from "./records";
-import { render } from "mustache";
 
 const identity = (
   _table: TableI,

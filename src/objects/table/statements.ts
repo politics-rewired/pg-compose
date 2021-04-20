@@ -1,43 +1,44 @@
+import { match, Unknown } from "runtypes";
+
+import { RunContextI } from "../../runners";
+import { PgIdentifierI } from "../core";
 import {
+  ColumnOperation,
   CreateColumnOperation,
   RenameColumnOperation,
   SetColumnDataTypeOperation,
   SetColumnDefaultOperation,
   SetColumnNullableOperation,
-  ColumnOperation,
 } from "./columns";
 import {
-  CreateIndexOperation,
-  RenameIndexOperation,
-  DropIndexOperation,
-  MakeIndexprimary_keyOperation,
-  Dropprimary_keyOperation,
-  IndexOperation,
-} from "./tableIndex";
-import {
-  TriggerOperation,
-  CreateTriggerOperation,
-  DropTriggerOperation,
-  ReorderTriggerOperation,
-} from "./triggers";
-import {
-  ForeignKeyOperation,
   CreateForeignKeyOperation,
   DropForeignKeyOperation,
+  ForeignKeyOperation,
 } from "./foreignKeys";
 import {
   CreateTableOperation,
   RenameTableOperation,
   TableOperation,
 } from "./reconcile";
-import { match, Unknown } from "runtypes";
-import { PgIdentifierI } from "../core";
-import { RunContextI } from "../../runners";
 import {
-  ColumnFunctionDefault,
   ColumnDefaultI,
+  ColumnFunctionDefault,
   ColumnLiteralDefault,
 } from "./records";
+import {
+  CreateIndexOperation,
+  DropIndexOperation,
+  Dropprimary_keyOperation,
+  IndexOperation,
+  MakeIndexprimary_keyOperation,
+  RenameIndexOperation,
+} from "./tableIndex";
+import {
+  CreateTriggerOperation,
+  DropTriggerOperation,
+  ReorderTriggerOperation,
+  TriggerOperation,
+} from "./triggers";
 
 const makeTableIdentifier = (
   schemaName: PgIdentifierI,

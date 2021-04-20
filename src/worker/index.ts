@@ -1,30 +1,30 @@
 import {
-  run as runWorker,
-  runTaskListOnce as runGraphileWorkerTaskListOnce,
-  runMigrations as runGraphileWorkerMigrations,
-  Task as GraphileWorkerTask,
-  JobHelpers,
-  RunnerOptions as WorkerRunnerOptions,
-  TaskList as GraphileWorkerTaskList,
-  AddJobFunction,
-  Logger,
-} from "graphile-worker";
-
-import {
   run as runScheduler,
   RunnerOptions as SchedulerRunnerOptions,
   ScheduleConfig,
 } from "graphile-scheduler";
-
+import {
+  AddJobFunction,
+  JobHelpers,
+  Logger,
+  run as runWorker,
+  runMigrations as runGraphileWorkerMigrations,
+  RunnerOptions as WorkerRunnerOptions,
+  runTaskListOnce as runGraphileWorkerTaskListOnce,
+  Task as GraphileWorkerTask,
+  TaskList as GraphileWorkerTaskList,
+} from "graphile-worker";
 import { Pool, PoolClient } from "pg";
+
 import { loadYaml } from "../loaders/yaml";
 import Cryptr = require("cryptr");
-import { installModule } from "..";
-import { directRunner } from "../runners";
-import { Record, String, Dictionary, Unknown, Union } from "runtypes";
 import { fromPairs, toPairs } from "lodash";
-import { ModuleI } from "../objects/module/core";
+import { Dictionary, Record, String, Union, Unknown } from "runtypes";
+
+import { installModule } from "..";
 import { DefaultLogger } from "../logger";
+import { ModuleI } from "../objects/module/core";
+import { directRunner } from "../runners";
 
 type PoolOrPoolClient = Pool | PoolClient;
 
@@ -125,6 +125,7 @@ export const runMigrations = async (
 
   const client = await pgPool.connect();
 
+  await client.query('create extension if not exists "uuid-ossp"');
   await client.query("create schema if not exists graphile_secrets");
 
   const m = await loadYaml({ include: `${__dirname}/graphile-secrets.yaml` });

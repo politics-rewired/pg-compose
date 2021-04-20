@@ -1,13 +1,13 @@
 import {
-  FunctionProvider,
-  FunctionI,
-  ContractI,
-  checkFunctionContractsMatch,
-} from "./index";
-import {
   checkIdempotency,
   checkIdempotencyAfterTransitions,
 } from "../test-helpers";
+import {
+  checkFunctionContractsMatch,
+  ContractI,
+  FunctionI,
+  FunctionProvider,
+} from "./index";
 
 describe("idempotency", () => {
   test("basic sql", async () => {

@@ -3,7 +3,7 @@ import {
   checkIdempotencyAfterTransitions,
 } from "../test-helpers";
 import { TableProvider } from "./index";
-import { TriggerI, TableI } from "./records";
+import { TableI, TriggerI } from "./records";
 
 const makeCoreTestingTable = (triggers: TriggerI[]): TableI => ({
   name: "people",

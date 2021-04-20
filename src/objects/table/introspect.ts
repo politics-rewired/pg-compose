@@ -1,16 +1,19 @@
+/* eslint-disable no-useless-escape */
+
+import { groupBy, sortBy } from "lodash";
 import { PoolClient } from "pg";
+
+import { RunContextI } from "../../runners";
 import { PgIdentifierI } from "../core";
 import {
-  TableI,
   ColumnI,
-  IndexI,
+  ForeignKeyI,
   GetterI,
+  IndexI,
+  TableI,
   TriggerI,
   TriggerTiming,
-  ForeignKeyI,
 } from "./records";
-import { groupBy, sortBy } from "lodash";
-import { RunContextI } from "../../runners";
 
 interface PgAttribute {
   attname: string;

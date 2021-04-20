@@ -1,5 +1,5 @@
-import { enforceTrait } from "./trait";
 import { TraitI } from "./records";
+import { enforceTrait } from "./trait";
 
 describe("trait enforcement - column", () => {
   const hasFirstNameTrait: TraitI = {
