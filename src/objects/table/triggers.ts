@@ -132,15 +132,17 @@ const matchFn = (desiredTable: TableI) =>
     ],
   );
 
-export const makeReconcileTriggers = (desiredTable: TableI) => async (
-  desired: TriggerI | undefined,
-  current: TriggerI | undefined,
-): Promise<TriggerOperationType[]> => {
-  const input = [desired, current];
+export const makeReconcileTriggers =
+  (desiredTable: TableI) =>
+  async (
+    desired: TriggerI | undefined,
+    current: TriggerI | undefined,
+  ): Promise<TriggerOperationType[]> => {
+    const input = [desired, current];
 
-  if (ReconcileTriggersInput.guard(input)) {
-    return matchFn(desiredTable)(input);
-  }
+    if (ReconcileTriggersInput.guard(input)) {
+      return matchFn(desiredTable)(input);
+    }
 
-  return [];
-};
+    return [];
+  };

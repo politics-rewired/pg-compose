@@ -49,14 +49,14 @@ export interface TaskList {
   [name: string]: Task;
 }
 
-export const makeWrapTaskList = (pool: PoolOrPoolClient, cryptr: Cryptr) => (
-  taskList: TaskList,
-): GraphileWorkerTaskList =>
-  fromPairs(
-    toPairs(taskList)
-      .map(([identifier, task]) => [identifier, wrapTask(pool, cryptr, task)])
-      .concat([["encrypt-secret", makeEncryptSecretTask(cryptr)]]),
-  );
+export const makeWrapTaskList =
+  (pool: PoolOrPoolClient, cryptr: Cryptr) =>
+  (taskList: TaskList): GraphileWorkerTaskList =>
+    fromPairs(
+      toPairs(taskList)
+        .map(([identifier, task]) => [identifier, wrapTask(pool, cryptr, task)])
+        .concat([["encrypt-secret", makeEncryptSecretTask(cryptr)]]),
+    );
 
 export const run = async (
   m: ModuleI,
@@ -66,7 +66,7 @@ export const run = async (
 
   const cryptr = new Cryptr(opts.encryptionSecret);
 
-  const schedules: ScheduleConfig[] = (m.cronJobs || []).map(cj => ({
+  const schedules: ScheduleConfig[] = (m.cronJobs || []).map((cj) => ({
     name: cj.name,
     pattern: cj.pattern,
     timeZone: cj.time_zone,
@@ -158,11 +158,11 @@ export const encryptSecret = async (
   cryptr: Cryptr,
   secretRef: string,
 ): Promise<void> => {
-  const { rows: unencryptedMatches } = await client.query<
-    GraphileUnencryptedSecrets
-  >("select * from graphile_secrets.unencrypted_secrets where ref = $1", [
-    secretRef,
-  ]);
+  const { rows: unencryptedMatches } =
+    await client.query<GraphileUnencryptedSecrets>(
+      "select * from graphile_secrets.unencrypted_secrets where ref = $1",
+      [secretRef],
+    );
 
   const { rows: encryptedMatches } = await client.query<GraphileSecrets>(
     "select * from graphile_secrets.secrets where ref = $1 and encrypted_secret is not null",
@@ -194,14 +194,13 @@ export const encryptSecret = async (
   throw new Error(`No secret found with ref ${secretRef}`);
 };
 
-const makeEncryptSecretTask = (cryptr: Cryptr): Task => async (
-  payload: any,
-  helpers: JobHelpers,
-) => {
-  await helpers.withPgClient(async pgClient => {
-    await encryptSecret(pgClient, cryptr, payload.ref);
-  });
-};
+const makeEncryptSecretTask =
+  (cryptr: Cryptr): Task =>
+  async (payload: any, helpers: JobHelpers) => {
+    await helpers.withPgClient(async (pgClient) => {
+      await encryptSecret(pgClient, cryptr, payload.ref);
+    });
+  };
 
 export const getSecret = async (
   client: PoolOrPoolClient,
@@ -253,10 +252,10 @@ export const deepCloneWithSecretReplacement = async (
   v: any,
 ): Promise<any> =>
   JobPayloadToClone.match(
-    async encodedSecret =>
+    async (encodedSecret) =>
       await getSecret(client, cryptr, encodedSecret.__secret),
 
-    async toRecurseOn =>
+    async (toRecurseOn) =>
       fromPairs(
         await Promise.all(
           toPairs(toRecurseOn).map(async ([k, v]) => [
@@ -266,7 +265,7 @@ export const deepCloneWithSecretReplacement = async (
         ),
       ),
 
-    async value => value,
+    async (value) => value,
   )(v);
 
 const AFTER_FN_KEY = "__after";

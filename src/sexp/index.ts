@@ -16,7 +16,7 @@ export interface CompiledExpression {
   types: string[];
 }
 
-const Integer = Number.withConstraint(n => Math.floor(n) === Math.ceil(n));
+const Integer = Number.withConstraint((n) => Math.floor(n) === Math.ceil(n));
 
 const compile = (sexp: SExpr): CompiledExpression =>
   match(
@@ -31,7 +31,7 @@ const compile = (sexp: SExpr): CompiledExpression =>
           );
         }
 
-        const compiledOperands = operands.map(op => compile(op as SExpr));
+        const compiledOperands = operands.map((op) => compile(op as SExpr));
 
         const operandArgumentPairs = zip(
           compiledOperands,
@@ -44,7 +44,7 @@ const compile = (sexp: SExpr): CompiledExpression =>
           const argSpec = opArgPair[1]!;
 
           const disallowedOperandTypes = operand.types.filter(
-            type => !argSpec.types.includes(type),
+            (type) => !argSpec.types.includes(type),
           );
           if (disallowedOperandTypes.length > 0) {
             throw new Error(
@@ -61,12 +61,12 @@ const compile = (sexp: SExpr): CompiledExpression =>
 
         const returnTypes =
           operation.dynamicReturns !== undefined
-            ? operation.dynamicReturns(compiledOperands.map(i => i.types))
+            ? operation.dynamicReturns(compiledOperands.map((i) => i.types))
             : operation.returns;
 
         return {
           expression: operation.template(
-            compiledOperands.map(i => `(${i.expression})`),
+            compiledOperands.map((i) => `(${i.expression})`),
           ),
           types: returnTypes,
         };
@@ -74,7 +74,7 @@ const compile = (sexp: SExpr): CompiledExpression =>
     ],
     [
       SExprValue,
-      val => {
+      (val) => {
         return {
           expression: val,
           types: [

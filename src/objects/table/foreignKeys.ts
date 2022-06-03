@@ -58,15 +58,17 @@ const matchFn = (desiredTable: TableI) =>
     ],
   );
 
-export const makeReconcileForeignKeys = (desiredTable: TableI) => async (
-  desired: ForeignKeyI | undefined,
-  current: ForeignKeyI | undefined,
-): Promise<ForeignKeyOperationType[]> => {
-  const input = [desired, current];
+export const makeReconcileForeignKeys =
+  (desiredTable: TableI) =>
+  async (
+    desired: ForeignKeyI | undefined,
+    current: ForeignKeyI | undefined,
+  ): Promise<ForeignKeyOperationType[]> => {
+    const input = [desired, current];
 
-  if (ReconcileForeignKeysInput.guard(input)) {
-    return matchFn(desiredTable)(input);
-  }
+    if (ReconcileForeignKeysInput.guard(input)) {
+      return matchFn(desiredTable)(input);
+    }
 
-  return [];
-};
+    return [];
+  };

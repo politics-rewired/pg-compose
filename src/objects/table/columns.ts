@@ -165,15 +165,17 @@ const matchFn = (desiredTable: TableI) =>
     ],
   );
 
-export const makeReconcileColumns = (desiredTable: TableI) => async (
-  desired: ColumnI | undefined,
-  current: ColumnI | undefined,
-): Promise<ColumnOperationType[]> => {
-  const input = [desired, current];
+export const makeReconcileColumns =
+  (desiredTable: TableI) =>
+  async (
+    desired: ColumnI | undefined,
+    current: ColumnI | undefined,
+  ): Promise<ColumnOperationType[]> => {
+    const input = [desired, current];
 
-  if (ReconcileColumnsInput.guard(input)) {
-    return matchFn(desiredTable)(input);
-  }
+    if (ReconcileColumnsInput.guard(input)) {
+      return matchFn(desiredTable)(input);
+    }
 
-  return [];
-};
+    return [];
+  };

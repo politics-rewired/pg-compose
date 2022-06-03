@@ -112,7 +112,7 @@ const introspectMany = async (
     [context.schema],
   );
 
-  return rows.map(p => ({
+  return rows.map((p) => ({
     name: p.name,
     body: p.body.trim(),
     returns: p.return_type,
@@ -123,7 +123,7 @@ const introspectMany = async (
       i: "immutable",
       v: "volatile",
     }[p.volatility] as "stable" | "immutable" | "volatile",
-    arguments: p.input_arguments.map(a => ({
+    arguments: p.input_arguments.map((a) => ({
       name: a.argname,
       type: a.argtype,
     })),
@@ -277,11 +277,9 @@ const toStatement = (context: RunContextI) =>
   match(
     [
       CreateFunctionOperation,
-      op =>
-        `CREATE FUNCTION "${context.schema}".${
-          op.func.name
-        }(${op.func.arguments
-          .map(p => [p.name, p.type].join(" "))
+      (op) =>
+        `CREATE FUNCTION "${context.schema}".${op.func.name}(${op.func.arguments
+          .map((p) => [p.name, p.type].join(" "))
           .join(", ")}) RETURNS ${op.func.returns} as $$ ${
           op.func.body
         } $$ language ${op.func.language} ${op.func.volatility} SECURITY ${
@@ -290,11 +288,11 @@ const toStatement = (context: RunContextI) =>
     ],
     [
       ReplaceFunctionOperation,
-      op =>
+      (op) =>
         `CREATE OR REPLACE FUNCTION "${context.schema}".${
           op.func.name
         }(${op.func.arguments
-          .map(p => [p.name, p.type].join(" "))
+          .map((p) => [p.name, p.type].join(" "))
           .join(", ")}) RETURNS ${op.func.returns} as $$ ${
           op.func.body
         } $$ language ${op.func.language} ${op.func.volatility} SECURITY ${
@@ -303,26 +301,24 @@ const toStatement = (context: RunContextI) =>
     ],
     [
       DropFunctionOperation,
-      op =>
-        `DROP FUNCTION "${context.schema}".${
-          op.func.name
-        }(${op.func.arguments
-          .map(p => [p.name, p.type].join(" "))
+      (op) =>
+        `DROP FUNCTION "${context.schema}".${op.func.name}(${op.func.arguments
+          .map((p) => [p.name, p.type].join(" "))
           .join(", ")});`,
     ],
     [
       RenameFunctionOperation,
-      op =>
+      (op) =>
         `ALTER FUNCTION "${context.schema}".${op.func.previous_name} RENAME TO ${op.func.name};`,
     ],
     [
       AlterFunctionVolatilityOperation,
-      op =>
+      (op) =>
         `ALTER FUNCTION "${context.schema}".${op.func.name} ${op.func.volatility};`,
     ],
     [
       AlterFunctionSecurityOperation,
-      op =>
+      (op) =>
         `ALTER FUNCTION "${context.schema}".${op.func.name} SECURITY ${op.func.security};`,
     ],
   );

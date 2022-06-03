@@ -60,14 +60,14 @@ const reconcile = async (
 
   // Removed satisfied fallback tables
   const withoutSatisfiedFallbackTables = (aggregateDesired.tables || []).filter(
-    table => {
+    (table) => {
       if (table.fallback_for !== undefined) {
         const trait = table.fallback_for;
         const otherTableThatImplementsTrait = (aggregateDesired.tables || [])
-          .filter(other => other.name !== table.name)
-          .find(other =>
+          .filter((other) => other.name !== table.name)
+          .find((other) =>
             other.implements?.find(
-              traitImplementation => traitImplementation.trait === trait,
+              (traitImplementation) => traitImplementation.trait === trait,
             ),
           );
 
@@ -96,7 +96,7 @@ const reconcile = async (
     if (func.implements !== undefined) {
       for (const contractName of func.implements) {
         const contract = (aggregateDesired.contracts || []).find(
-          c => c.name === contractName,
+          (c) => c.name === contractName,
         );
 
         if (contract === undefined) {
@@ -117,14 +117,14 @@ const reconcile = async (
   // Remove satisfied fallback functions
   const withoutSatisfiedFallbackFunctions = (
     aggregateDesired.functions || []
-  ).filter(func => {
+  ).filter((func) => {
     if (func.fallback_for === undefined) {
       return true;
     }
 
     const contractThatFuncIsFallbackFor = (
       aggregateDesired.contracts || []
-    ).find(con => con.name === func.fallback_for);
+    ).find((con) => con.name === func.fallback_for);
 
     if (contractThatFuncIsFallbackFor === undefined) {
       throw new Error(
@@ -135,7 +135,7 @@ const reconcile = async (
     const otherImplementationOfContract = (
       aggregateDesired.functions || []
     ).find(
-      otherFunc =>
+      (otherFunc) =>
         otherFunc.name !== func.name &&
         (otherFunc.implements || []).includes(
           contractThatFuncIsFallbackFor.name,
@@ -150,13 +150,14 @@ const reconcile = async (
   );
 
   // Create function operations
-  const functionOperations = await createOperationsForObjectWithIdentityFunction(
-    expandedFunctions,
-    current === undefined ? [] : current.functions,
-    FunctionProvider.reconcile,
-    FunctionProvider.identityFn,
-    { dropObjects: true },
-  );
+  const functionOperations =
+    await createOperationsForObjectWithIdentityFunction(
+      expandedFunctions,
+      current === undefined ? [] : current.functions,
+      FunctionProvider.reconcile,
+      FunctionProvider.identityFn,
+      { dropObjects: true },
+    );
 
   return (tableOperations as ModuleOperationType[]).concat(
     functionOperations as ModuleOperationType[],
@@ -184,7 +185,7 @@ export const rollupDependencies = async (
   loaders: ModuleLoader[],
 ): Promise<ModuleI> => {
   const dependencies = await Promise.all(
-    loaders.map(l => {
+    loaders.map((l) => {
       return l();
     }),
   );
@@ -224,103 +225,105 @@ export const rollupDependencies = async (
   return firstModule;
 };
 
-const maybeExpandFunction = (desired: ModuleI) => (
-  func: FunctionI,
-): FunctionI => {
-  if (func.requires === undefined || func.requires.length === 0) {
-    return func;
-  }
+const maybeExpandFunction =
+  (desired: ModuleI) =>
+  (func: FunctionI): FunctionI => {
+    if (func.requires === undefined || func.requires.length === 0) {
+      return func;
+    }
 
-  // TODO - support multiple required traits
-  // const requiredTraits = func.requires.map(r => r.trait);
+    // TODO - support multiple required traits
+    // const requiredTraits = func.requires.map(r => r.trait);
 
-  const requiredTraitName = func.requires[0].trait;
-  const requiredTrait = (desired.traits || []).find(
-    trait => trait.name === requiredTraitName,
-  );
-
-  if (requiredTrait === undefined) {
-    throw new Error(
-      `Function ${func.name} requires trait ${requiredTraitName} but no such trait exists`,
-    );
-  }
-
-  const tableThatImplementsTrait = (desired.tables || []).find(t =>
-    (t.implements || []).find(i => i.trait === requiredTraitName),
-  );
-
-  if (tableThatImplementsTrait === undefined) {
-    throw new Error(
-      `Function ${func.name} requires trait ${requiredTraitName} but no table implements this trait`,
-    );
-  }
-
-  const implementation = (tableThatImplementsTrait.implements || []).find(
-    i => i.trait === requiredTraitName,
-  );
-
-  const bodyVars = fromPairs(
-    ((requiredTrait.requires || {}).columns || []).map(col => [
-      col.name,
-      (implementation!.via &&
-        implementation!.via.columns &&
-        implementation!.via.columns[col.name]) ||
-        col.name,
-    ]),
-  );
-
-  bodyVars[requiredTraitName] = tableThatImplementsTrait.name;
-
-  return Object.assign({}, func, {
-    body: render(func.body, bodyVars),
-  });
-};
-
-const maybeExpandTable = (desired: ModuleI) => (table: TableI): TableI => {
-  let nextTable = table;
-
-  // Apply table extensions
-  const extensionsForTable = (desired.extensions || []).filter(
-    ext => ext.table === table.name,
-  );
-
-  for (const extension of extensionsForTable) {
-    nextTable = extendTable(nextTable, extension);
-  }
-
-  if (table.implements === undefined) {
-    return nextTable;
-  }
-
-  const implementedTraits = table.implements;
-
-  // Implement all traits
-  for (const traitImplementation of implementedTraits) {
-    const trait = (desired.traits || []).find(
-      t => t.name === traitImplementation.trait,
+    const requiredTraitName = func.requires[0].trait;
+    const requiredTrait = (desired.traits || []).find(
+      (trait) => trait.name === requiredTraitName,
     );
 
-    if (trait === undefined) {
+    if (requiredTrait === undefined) {
       throw new Error(
-        `Table ${table.name} implements trait ${traitImplementation.trait}, but that trait does not exist`,
+        `Function ${func.name} requires trait ${requiredTraitName} but no such trait exists`,
       );
     }
 
-    const enforcementResult = enforceTrait(trait, table);
+    const tableThatImplementsTrait = (desired.tables || []).find((t) =>
+      (t.implements || []).find((i) => i.trait === requiredTraitName),
+    );
 
-    if (enforcementResult !== true) {
-      throw new Error(enforcementResult.join("\n"));
-    }
-
-    if (trait.provides !== undefined) {
-      nextTable = extendTable(
-        nextTable,
-        trait.provides,
-        traitImplementation,
-        trait.requires,
+    if (tableThatImplementsTrait === undefined) {
+      throw new Error(
+        `Function ${func.name} requires trait ${requiredTraitName} but no table implements this trait`,
       );
     }
-  }
 
-  return nextTable;
-};
+    const implementation = (tableThatImplementsTrait.implements || []).find(
+      (i) => i.trait === requiredTraitName,
+    );
+
+    const bodyVars = fromPairs(
+      ((requiredTrait.requires || {}).columns || []).map((col) => [
+        col.name,
+        (implementation!.via &&
+          implementation!.via.columns &&
+          implementation!.via.columns[col.name]) ||
+          col.name,
+      ]),
+    );
+
+    bodyVars[requiredTraitName] = tableThatImplementsTrait.name;
+
+    return Object.assign({}, func, {
+      body: render(func.body, bodyVars),
+    });
+  };
+
+const maybeExpandTable =
+  (desired: ModuleI) =>
+  (table: TableI): TableI => {
+    let nextTable = table;
+
+    // Apply table extensions
+    const extensionsForTable = (desired.extensions || []).filter(
+      (ext) => ext.table === table.name,
+    );
+
+    for (const extension of extensionsForTable) {
+      nextTable = extendTable(nextTable, extension);
+    }
+
+    if (table.implements === undefined) {
+      return nextTable;
+    }
+
+    const implementedTraits = table.implements;
+
+    // Implement all traits
+    for (const traitImplementation of implementedTraits) {
+      const trait = (desired.traits || []).find(
+        (t) => t.name === traitImplementation.trait,
+      );
+
+      if (trait === undefined) {
+        throw new Error(
+          `Table ${table.name} implements trait ${traitImplementation.trait}, but that trait does not exist`,
+        );
+      }
+
+      const enforcementResult = enforceTrait(trait, table);
+
+      if (enforcementResult !== true) {
+        throw new Error(enforcementResult.join("\n"));
+      }
+
+      if (trait.provides !== undefined) {
+        nextTable = extendTable(
+          nextTable,
+          trait.provides,
+          traitImplementation,
+          trait.requires,
+        );
+      }
+    }
+
+    return nextTable;
+  };

@@ -34,7 +34,7 @@ const Column = Record({
     }),
   )
   .withConstraint(
-    col => {
+    (col) => {
       if (
         col.default === undefined ||
         ColumnFunctionDefault.guard(col.default)
@@ -108,7 +108,7 @@ const Index = Record({
     }),
   )
   .withConstraint(
-    idx => (idx.primary_key === true ? idx.unique === true : true),
+    (idx) => (idx.primary_key === true ? idx.unique === true : true),
     { name: "Primary keys must be unique" },
   );
 
@@ -192,25 +192,25 @@ const Table = Record({
     }),
   )
   .withConstraint(
-    table => {
+    (table) => {
       const indexes = table.indexes;
       if (indexes === undefined) {
         return true;
       }
-      return indexes.filter(index => index.primary_key === true).length <= 1;
+      return indexes.filter((index) => index.primary_key === true).length <= 1;
     },
     { name: "Only 1 primary key per table" },
   )
   .withConstraint(
-    table => {
-      const primary_key = table.indexes?.find(idx => idx.primary_key);
+    (table) => {
+      const primary_key = table.indexes?.find((idx) => idx.primary_key);
       if (primary_key === undefined) {
         return true;
       }
-      const columnsInprimary_key = primary_key.on.map(indexCol =>
-        table.columns.find(col => col.name === indexCol.column),
+      const columnsInprimary_key = primary_key.on.map((indexCol) =>
+        table.columns.find((col) => col.name === indexCol.column),
       );
-      return columnsInprimary_key.every(col => col?.nullable === false);
+      return columnsInprimary_key.every((col) => col?.nullable === false);
     },
     {
       name: "Primary keys must be on non-nullable columns ",

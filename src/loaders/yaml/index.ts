@@ -32,41 +32,41 @@ export const loadYaml: Loader<YamlLoaderOpts> = async (
   );
 
   const allFileContents = (
-    await Promise.all(files.map(f => fs.readFile(f)))
-  ).map(b => b.toString());
+    await Promise.all(files.map((f) => fs.readFile(f)))
+  ).map((b) => b.toString());
 
-  const allYamlDocuments = flatMap(allFileContents, contents =>
+  const allYamlDocuments = flatMap(allFileContents, (contents) =>
     parseAllDocuments(contents),
   );
 
-  const allYamlObjects = allYamlDocuments.map(d => d.toJSON());
+  const allYamlObjects = allYamlDocuments.map((d) => d.toJSON());
 
   const tables = allYamlObjects
-    .map(t => (YamlTable.guard(t) ? toTable(t) : undefined))
+    .map((t) => (YamlTable.guard(t) ? toTable(t) : undefined))
     .filter(IsNotUndefined);
 
   const traits = allYamlObjects
-    .map(t => (YamlTrait.guard(t) ? toTrait(t) : undefined))
+    .map((t) => (YamlTrait.guard(t) ? toTrait(t) : undefined))
     .filter(IsNotUndefined);
 
   const tests = allYamlObjects
-    .map(t => (YamlTest.guard(t) ? toTest(t) : undefined))
+    .map((t) => (YamlTest.guard(t) ? toTest(t) : undefined))
     .filter(IsNotUndefined);
 
   const functions = allYamlObjects
-    .map(f => (YamlFunction.guard(f) ? toFunction(f) : undefined))
+    .map((f) => (YamlFunction.guard(f) ? toFunction(f) : undefined))
     .filter(IsNotUndefined);
 
   const contracts = allYamlObjects
-    .map(c => (YamlContract.guard(c) ? toContract(c) : undefined))
+    .map((c) => (YamlContract.guard(c) ? toContract(c) : undefined))
     .filter(IsNotUndefined);
 
   const cronJobs = allYamlObjects
-    .map(cj => (YamlCronJob.guard(cj) ? toCronJob(cj) : undefined))
+    .map((cj) => (YamlCronJob.guard(cj) ? toCronJob(cj) : undefined))
     .filter(IsNotUndefined);
 
   const dependencies = allYamlObjects
-    .map(d => (YamlDependency.guard(d) ? toDependency(d) : undefined))
+    .map((d) => (YamlDependency.guard(d) ? toDependency(d) : undefined))
     .filter(IsNotUndefined);
 
   for (const table of tables) {

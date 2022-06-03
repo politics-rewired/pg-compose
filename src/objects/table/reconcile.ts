@@ -121,24 +121,25 @@ export const reconcileTables = async (
   // Accumulate foreign key reconciliations
   const fkIdentityFn = (desiredFk: ForeignKeyI, currentFk: ForeignKeyI) =>
     isEqual(
-      sortBy(desiredFk.on, c => c),
-      sortBy(currentFk.on, c => c),
+      sortBy(desiredFk.on, (c) => c),
+      sortBy(currentFk.on, (c) => c),
     ) &&
     desiredFk.references.table === currentFk.references.table &&
     isEqual(
-      sortBy(desiredFk.references.columns, c => c),
-      sortBy(currentFk.references.columns, c => c),
+      sortBy(desiredFk.references.columns, (c) => c),
+      sortBy(currentFk.references.columns, (c) => c),
     );
 
-  const foreignKeyOperations = await createOperationsForObjectWithIdentityFunction<
-    ForeignKeyI,
-    ForeignKeyOperationType
-  >(
-    desired.foreign_keys,
-    current === undefined ? [] : current?.foreign_keys,
-    makeReconcileForeignKeys(desired),
-    fkIdentityFn,
-  );
+  const foreignKeyOperations =
+    await createOperationsForObjectWithIdentityFunction<
+      ForeignKeyI,
+      ForeignKeyOperationType
+    >(
+      desired.foreign_keys,
+      current === undefined ? [] : current?.foreign_keys,
+      makeReconcileForeignKeys(desired),
+      fkIdentityFn,
+    );
 
   return operations
     .concat(columnOperations)

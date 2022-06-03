@@ -28,14 +28,14 @@ export const flattenKeyToProp = <T, U>(
 
   const keys = Object.keys(obj);
 
-  return flatMap(keys, k => {
+  return flatMap(keys, (k) => {
     if (Array.isArray(obj[k])) {
       const u = (obj[k] as any).map((o: any) =>
         Object.assign({}, o, { [prop]: k }),
       ) as U[];
       return u;
     } else {
-      const u = (Object.assign({}, obj[k], { [prop]: k }) as unknown) as U;
+      const u = Object.assign({}, obj[k], { [prop]: k }) as unknown as U;
 
       return u;
     }

@@ -35,7 +35,7 @@ const add: OperationSpec = {
   returns: [CoreTypes.Integer, CoreTypes.Decimal],
   dynamicReturns: (inputTypeOptions: string[][]) =>
     inputTypeOptions.every(
-      type => type.length === 1 && type[0] === CoreTypes.Integer,
+      (type) => type.length === 1 && type[0] === CoreTypes.Integer,
     )
       ? [CoreTypes.Integer]
       : [CoreTypes.Decimal],
