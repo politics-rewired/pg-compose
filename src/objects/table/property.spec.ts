@@ -7,7 +7,7 @@ import { TableProvider } from "./index";
 import { Column, TableI } from "./records";
 
 const PgIdentifierArbitrary = fc
-  .unicodeString(1, 20)
+  .unicodeString({ minLength: 1, maxLength: 20 })
   .filter(PgIdentifier.guard);
 
 type RecordShape = {
