@@ -34,12 +34,14 @@ import {
 // };
 
 interface CliOpts {
+  [x: string]: unknown;
   database: string;
   files: string;
   schema: string;
-  out?: string;
-  testFiles: string;
   watch: boolean;
+  out: string | undefined;
+  _: (string | number)[];
+  $0: string;
 }
 
 const install = (taskList?: TaskList) => async (argv: CliOpts) => {
