@@ -1,4 +1,5 @@
-import fc from "fast-check";
+import fc, { Arbitrary } from "fast-check";
+import { sample } from "lodash";
 
 import { PgIdentifier } from "../core";
 import { checkIdempotency } from "../test-helpers";
@@ -9,17 +10,41 @@ const PgIdentifierArbitrary = fc
   .unicodeString(1, 20)
   .filter(PgIdentifier.guard);
 
-const ColumnArbitrary = fc
-  .record({
-    name: PgIdentifierArbitrary,
-    type: fc.oneof(
-      fc.constant("text"),
-      fc.constant("integer"),
-      fc.constant("numeric"),
-      fc.constant("timestamp"),
-    ),
+type RecordShape = {
+  name: string;
+  type: string;
+  default: string | number | undefined;
+  nullable: boolean;
+};
+
+type RecordTypeDefaultArbitrary = {
+  [A in keyof Pick<RecordShape, "type" | "default">]: Arbitrary<RecordShape[A]>;
+};
+
+const pairings: RecordTypeDefaultArbitrary[] = [
+  {
+    type: fc.constant("text"),
     default: fc.oneof(fc.constant(undefined), fc.asciiString()),
+  },
+  {
+    type: fc.constant("numeric"),
+    default: fc.oneof(fc.constant(undefined), fc.float()),
+  },
+  {
+    type: fc.constant("integer"),
+    default: fc.oneof(fc.constant(undefined), fc.integer()),
+  },
+  {
+    type: fc.constant("timestamp"),
+    default: fc.oneof(fc.constant(undefined), fc.integer()),
+  },
+];
+
+const ColumnArbitrary = fc
+  .record<RecordShape>({
+    name: PgIdentifierArbitrary,
     nullable: fc.boolean(),
+    ...sample(pairings)!,
   })
   .filter(Column.guard);
 
