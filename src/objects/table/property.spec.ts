@@ -49,6 +49,7 @@ describe("table property tests", () => {
         );
         return newOperationList.length === 0;
       }),
+      { verbose: true },
     );
   });
 });
