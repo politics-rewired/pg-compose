@@ -129,14 +129,16 @@ export const makeIndexToStatement = (context: RunContextI) =>
           op.table.name,
         )} (${op.index.on
           .map(
-            col =>
+            (col: any) =>
               `${col.column} ${col.order || "ASC"} ${
                 col.nulls ? `NULLS ${col.nulls}` : ""
               }`,
           )
           .join(", ")}) ${
           op.index.include !== undefined
-            ? `INCLUDE (${op.index.include.map(c => c.column).join(", ")})`
+            ? `INCLUDE (${op.index.include
+                .map((c: any) => c.column)
+                .join(", ")})`
             : ""
         } ${op.index.where ? `WHERE ${op.index.where}` : ""};`,
     ],

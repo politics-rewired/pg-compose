@@ -281,7 +281,7 @@ const toStatement = (context: RunContextI) =>
         `CREATE FUNCTION "${context.schema}".${
           op.func.name
         }(${op.func.arguments
-          .map(p => [p.name, p.type].join(" "))
+          .map((p: any) => [p.name, p.type].join(" "))
           .join(", ")}) RETURNS ${op.func.returns} as $$ ${
           op.func.body
         } $$ language ${op.func.language} ${op.func.volatility} SECURITY ${
@@ -294,7 +294,7 @@ const toStatement = (context: RunContextI) =>
         `CREATE OR REPLACE FUNCTION "${context.schema}".${
           op.func.name
         }(${op.func.arguments
-          .map(p => [p.name, p.type].join(" "))
+          .map((p: any) => [p.name, p.type].join(" "))
           .join(", ")}) RETURNS ${op.func.returns} as $$ ${
           op.func.body
         } $$ language ${op.func.language} ${op.func.volatility} SECURITY ${
@@ -307,7 +307,7 @@ const toStatement = (context: RunContextI) =>
         `DROP FUNCTION "${context.schema}".${
           op.func.name
         }(${op.func.arguments
-          .map(p => [p.name, p.type].join(" "))
+          .map((p: any) => [p.name, p.type].join(" "))
           .join(", ")});`,
     ],
     [

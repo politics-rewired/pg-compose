@@ -31,7 +31,7 @@ const compile = (sexp: SExpr): CompiledExpression =>
           );
         }
 
-        const compiledOperands = operands.map(op => compile(op as SExpr));
+        const compiledOperands = operands.map((op: SExpr) => compile(op));
 
         const operandArgumentPairs = zip(
           compiledOperands,
@@ -40,11 +40,11 @@ const compile = (sexp: SExpr): CompiledExpression =>
         );
 
         for (const opArgPair of operandArgumentPairs) {
-          const operand = opArgPair[0]!;
-          const argSpec = opArgPair[1]!;
+          const operand = opArgPair[0]! as any;
+          const argSpec = opArgPair[1]! as any;
 
           const disallowedOperandTypes = operand.types.filter(
-            type => !argSpec.types.includes(type),
+            (type: any) => !argSpec.types.includes(type),
           );
           if (disallowedOperandTypes.length > 0) {
             throw new Error(
@@ -66,7 +66,7 @@ const compile = (sexp: SExpr): CompiledExpression =>
 
         return {
           expression: operation.template(
-            compiledOperands.map(i => `(${i.expression})`),
+            compiledOperands.map((i: any) => `(${i.expression})`),
           ),
           types: returnTypes,
         };
