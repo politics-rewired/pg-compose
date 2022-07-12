@@ -1,5 +1,5 @@
+import { LogLevel } from "@graphile/logger";
 import { LogFunctionFactory, Logger } from "graphile-worker";
-import { LogLevel } from "graphile-worker/dist/logger";
 
 const DefaultLogFactory: LogFunctionFactory = scope => (
   level,
