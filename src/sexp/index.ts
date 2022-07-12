@@ -61,7 +61,9 @@ const compile = (sexp: SExpr): CompiledExpression =>
 
         const returnTypes =
           operation.dynamicReturns !== undefined
-            ? operation.dynamicReturns(compiledOperands.map(i => i.types))
+            ? operation.dynamicReturns(
+                compiledOperands.map((i: any) => i.types),
+              )
             : operation.returns;
 
         return {
