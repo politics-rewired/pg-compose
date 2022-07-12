@@ -71,7 +71,7 @@ export const fileRunner: Runner = async (
   toStatement: ToStatementFunction<ModuleOperationType>,
   context: ToFileRunContextI,
 ): Promise<void> => {
-  const allStatements = operations.map((op) => toStatement(op, context));
+  const allStatements = operations.map(op => toStatement(op, context));
   const contents = allStatements.join("\n");
 
   await fs.writeFile(context.outFile, contents);

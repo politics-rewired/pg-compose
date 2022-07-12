@@ -5,13 +5,13 @@ import { Runtype, Static, String } from "runtypes";
 import { RunContextI } from "../runners";
 
 export const PgIdentifier = String.withConstraint(
-  (s) => s.match(/[^a-z0-9_]/) === null,
+  s => s.match(/[^a-z0-9_]/) === null,
   { name: "PgIdentifier should be all alphanumeric lower case" },
 )
-  .withConstraint((s) => s.length > 0, {
+  .withConstraint(s => s.length > 0, {
     name: "PgIdentifier must have length > 0",
   })
-  .withConstraint((s) => s[0].match(/[0-9]/) === null, {
+  .withConstraint(s => s[0].match(/[0-9]/) === null, {
     name: "PgIdentifier should not start with a number",
   });
 
@@ -57,10 +57,10 @@ interface NameableObject {
 
 type IdentityFunction<T> = (desired: T, current: T) => boolean;
 
-export const identityFunctionForNameableObject: IdentityFunction<
-  NameableObject
-> = (desired: NameableObject, current: NameableObject) =>
-  desired.name === current.name || desired.previous_name === current.name;
+export const identityFunctionForNameableObject: IdentityFunction<NameableObject> = (
+  desired: NameableObject,
+  current: NameableObject,
+) => desired.name === current.name || desired.previous_name === current.name;
 
 export const createOperationsForNameableObject = <ObjectType, OperationType>(
   desiredObjects: (NameableObject & ObjectType)[] | undefined,
@@ -91,7 +91,7 @@ interface CreateOperationsOpts {
 
 export const createOperationsForObjectWithIdentityFunction = async <
   ObjectType,
-  OperationType,
+  OperationType
 >(
   desiredObjects: ObjectType[] | undefined,
   currentObjects: ObjectType[] | undefined,
@@ -110,8 +110,8 @@ export const createOperationsForObjectWithIdentityFunction = async <
   // Accumulate create or alter operations
   const createOrAlterOperations: OperationType[] = flatten(
     await Promise.all(
-      dObjects.map(async (desired) => {
-        const current = cObjects.find((current) =>
+      dObjects.map(async desired => {
+        const current = cObjects.find(current =>
           identityFunction(desired, current),
         );
 
@@ -127,7 +127,7 @@ export const createOperationsForObjectWithIdentityFunction = async <
   const dropOperations: OperationType[] = flatten(
     await Promise.all(
       cObjects.map(async (current: ObjectType) => {
-        const desired = dObjects.find((desired) =>
+        const desired = dObjects.find(desired =>
           identityFunction(desired, current),
         );
 

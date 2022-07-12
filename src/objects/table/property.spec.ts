@@ -66,7 +66,7 @@ fc.configureGlobal({
 describe("table property tests", () => {
   test("idempotency", async () => {
     await fc.assert(
-      fc.asyncProperty(TableArbitary, async (table) => {
+      fc.asyncProperty(TableArbitary, async table => {
         const newOperationList = await checkIdempotency(
           TableProvider,
           table as TableI,

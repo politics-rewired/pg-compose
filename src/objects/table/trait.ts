@@ -6,7 +6,7 @@ export const enforceTrait = (trait: TraitI, table: TableI): true | string[] => {
   const errors = [];
 
   const implementation = (table.implements || []).find(
-    (i) => i.trait === trait.name,
+    i => i.trait === trait.name,
   );
 
   if (implementation === undefined) {
@@ -31,7 +31,7 @@ export const enforceTrait = (trait: TraitI, table: TableI): true | string[] => {
 
       if (String.guard(columnImplementation)) {
         const implementedColumn = table.columns.find(
-          (col) => col.name === columnImplementation,
+          col => col.name === columnImplementation,
         );
 
         if (!implementedColumn) {
@@ -57,7 +57,7 @@ export const enforceTrait = (trait: TraitI, table: TableI): true | string[] => {
         }
       } else {
         const getterAsColumn = (table.getters || []).find(
-          (m) => m.name === columnImplementation.name,
+          m => m.name === columnImplementation.name,
         );
 
         if (getterAsColumn === undefined) {
@@ -89,7 +89,7 @@ export const enforceTrait = (trait: TraitI, table: TableI): true | string[] => {
         getterImplementations[requiredgetter.name] || requiredgetter.name;
 
       const implementedgetter = (table.getters || []).find(
-        (m) => m.name === getterImplementation,
+        m => m.name === getterImplementation,
       );
 
       if (implementedgetter === undefined) {

@@ -65,7 +65,7 @@ export const runTest = async (
   const wrapTaskList = makeWrapTaskList(client, new Cryptr("test"));
   const taskList = wrapTaskList(context.taskList || {});
 
-  tape(test.name, async (t) => {
+  tape(test.name, async t => {
     try {
       const setupString = render(test.setup, process.env);
       await client.query(setupString);

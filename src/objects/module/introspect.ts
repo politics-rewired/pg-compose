@@ -28,7 +28,7 @@ export const introspectModule = async (
   const tableIdentifiers: PgTables[] = result.rows;
 
   const tables = await Promise.all(
-    tableIdentifiers.map((t) =>
+    tableIdentifiers.map(t =>
       TableProvider.introspect(client, t.name, context),
     ),
   );

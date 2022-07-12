@@ -359,7 +359,8 @@ describe("function body trait replacements", () => {
           volatility: "volatile",
           requires: [{ trait: "nameable" }],
           returns: "void",
-          body: "insert into {{ nameable }} ({{ first_name }}) values (insert_into_nameable.first_name)",
+          body:
+            "insert into {{ nameable }} ({{ first_name }}) values (insert_into_nameable.first_name)",
         },
       ],
     };
@@ -376,7 +377,8 @@ describe("function body trait replacements", () => {
           security: "definer",
           volatility: "volatile",
           returns: "void",
-          body: "insert into people (given_name) values (insert_into_nameable.first_name)",
+          body:
+            "insert into people (given_name) values (insert_into_nameable.first_name)",
         },
       ],
     };
@@ -413,7 +415,8 @@ describe("function body trait replacements", () => {
           volatility: "volatile",
           requires: [{ trait: "nameable" }],
           returns: "void",
-          body: "insert into {{ nameable }} ({{ first_name }}) values (insert_into_nameable.first_name)",
+          body:
+            "insert into {{ nameable }} ({{ first_name }}) values (insert_into_nameable.first_name)",
         },
       ],
     };
@@ -430,7 +433,8 @@ describe("function body trait replacements", () => {
           security: "definer",
           volatility: "volatile",
           returns: "void",
-          body: "insert into people (first_name) values (insert_into_nameable.first_name)",
+          body:
+            "insert into people (first_name) values (insert_into_nameable.first_name)",
         },
       ],
     };
@@ -479,7 +483,8 @@ describe("function body trait replacements", () => {
           volatility: "volatile",
           requires: [{ trait: "nameable" }],
           returns: "void",
-          body: "insert into {{ nameable }} ({{ first_name }}, {{ last_name }}) values (insert_into_nameable.first_name, insert_into_nameable.last_name)",
+          body:
+            "insert into {{ nameable }} ({{ first_name }}, {{ last_name }}) values (insert_into_nameable.first_name, insert_into_nameable.last_name)",
         },
       ],
     };
@@ -505,7 +510,8 @@ describe("function body trait replacements", () => {
           security: "definer",
           volatility: "volatile",
           returns: "void",
-          body: "insert into people (given_name, last_name) values (insert_into_nameable.first_name, insert_into_nameable.last_name)",
+          body:
+            "insert into people (given_name, last_name) values (insert_into_nameable.first_name, insert_into_nameable.last_name)",
         },
       ],
     };

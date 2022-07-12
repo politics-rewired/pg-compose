@@ -17,9 +17,7 @@ describe("extend", () => {
     );
 
     expect(extended.columns).toHaveLength(2);
-    expect(
-      extended.columns.find((n) => n.name === "first_name"),
-    ).not.toBeNull();
-    expect(extended.columns.find((n) => n.name === "last_name")).not.toBeNull();
+    expect(extended.columns.find(n => n.name === "first_name")).not.toBeNull();
+    expect(extended.columns.find(n => n.name === "last_name")).not.toBeNull();
   });
 });

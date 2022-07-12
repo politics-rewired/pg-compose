@@ -48,7 +48,7 @@ const makeTableIdentifier = (
 const makeDefaultString = (columnDefault: ColumnDefaultI) =>
   match(
     [ColumnFunctionDefault, ({ fn }) => fn],
-    [ColumnLiteralDefault, (l) => `'${l}'`],
+    [ColumnLiteralDefault, l => `'${l}'`],
   )(columnDefault);
 
 const generateTriggerName = (name: string, order: number, table: string) =>
@@ -58,11 +58,11 @@ const makeTableToStatement = (context: RunContextI) =>
   match(
     [
       CreateTableOperation,
-      (op) => `CREATE TABLE "${context.schema}"."${op.table.name}" ();`,
+      op => `CREATE TABLE "${context.schema}"."${op.table.name}" ();`,
     ],
     [
       RenameTableOperation,
-      (op) =>
+      op =>
         `ALTER TABLE "${context.schema}"."${op.table.previous_name}" rename to "${op.table.name}";`,
     ],
   );
@@ -71,7 +71,7 @@ const makeColumnToStatement = (context: RunContextI) =>
   match(
     [
       CreateColumnOperation,
-      (op) =>
+      op =>
         [
           `ALTER TABLE "${context.schema}"."${op.table.name}" add column ${op.column.name} ${op.column.type}`,
         ]
@@ -89,17 +89,17 @@ const makeColumnToStatement = (context: RunContextI) =>
     ],
     [
       RenameColumnOperation,
-      (op) =>
+      op =>
         `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${op.column.previous_name} rename to ${op.column.name}`,
     ],
     [
       SetColumnDataTypeOperation,
-      (op) =>
+      op =>
         `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${op.column.name} set data type ${op.column.type};`,
     ],
     [
       SetColumnDefaultOperation,
-      (op) =>
+      op =>
         `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${
           op.column.name
         } ${
@@ -110,7 +110,7 @@ const makeColumnToStatement = (context: RunContextI) =>
     ],
     [
       SetColumnNullableOperation,
-      (op) =>
+      op =>
         `ALTER TABLE "${context.schema}"."${op.table.name}" alter column ${
           op.column.name
         } ${op.column.nullable ? "DROP NOT NULL" : "SET NOT NULL"};`,
@@ -121,7 +121,7 @@ export const makeIndexToStatement = (context: RunContextI) =>
   match(
     [
       CreateIndexOperation,
-      (op) =>
+      op =>
         `CREATE ${op.index.unique ? "UNIQUE" : ""} INDEX ${
           op.index.name
         } ON ${makeTableIdentifier(
@@ -129,29 +129,29 @@ export const makeIndexToStatement = (context: RunContextI) =>
           op.table.name,
         )} (${op.index.on
           .map(
-            (col) =>
+            col =>
               `${col.column} ${col.order || "ASC"} ${
                 col.nulls ? `NULLS ${col.nulls}` : ""
               }`,
           )
           .join(", ")}) ${
           op.index.include !== undefined
-            ? `INCLUDE (${op.index.include.map((c) => c.column).join(", ")})`
+            ? `INCLUDE (${op.index.include.map(c => c.column).join(", ")})`
             : ""
         } ${op.index.where ? `WHERE ${op.index.where}` : ""};`,
     ],
     [
       RenameIndexOperation,
-      (op) =>
+      op =>
         `ALTER INDEX "${context.schema}".${op.index.previous_name} rename to ${op.index.name};`,
     ],
     [
       DropIndexOperation,
-      (op) => `DROP INDEX "${context.schema}".${op.index.name};`,
+      op => `DROP INDEX "${context.schema}".${op.index.name};`,
     ],
     [
       MakeIndexprimary_keyOperation,
-      (op) =>
+      op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
           op.table.name,
@@ -159,7 +159,7 @@ export const makeIndexToStatement = (context: RunContextI) =>
     ],
     [
       Dropprimary_keyOperation,
-      (op) =>
+      op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
           op.table.name,
@@ -167,7 +167,7 @@ export const makeIndexToStatement = (context: RunContextI) =>
     ],
     [
       Unknown,
-      (op) => {
+      op => {
         throw new Error(`Could not match operation: ${JSON.stringify(op)}`);
       },
     ],
@@ -177,7 +177,7 @@ export const makeTriggerToStatement = (context: RunContextI) =>
   match(
     [
       CreateTriggerOperation,
-      (op) => {
+      op => {
         const functionName = `tg__${op.table.name}__${op.trigger.name}`;
 
         const triggerName = generateTriggerName(
@@ -205,7 +205,7 @@ CREATE TRIGGER ${triggerName}
     ],
     [
       DropTriggerOperation,
-      (op) => {
+      op => {
         const functionName = `tg__${op.table.name}__${op.trigger.name}`;
 
         const triggerName = generateTriggerName(
@@ -225,7 +225,7 @@ CREATE TRIGGER ${triggerName}
     ],
     [
       ReorderTriggerOperation,
-      (op) => {
+      op => {
         const oldTriggerName = generateTriggerName(
           op.trigger.name,
           op.trigger.previous_order as number,
@@ -246,7 +246,7 @@ CREATE TRIGGER ${triggerName}
     ],
     [
       Unknown,
-      (op) => {
+      op => {
         throw new Error(`Unknown operation: ${JSON.stringify(op, null, 2)}`);
       },
     ],
@@ -256,7 +256,7 @@ export const makeforeign_keyToStatement = (context: RunContextI) =>
   match(
     [
       CreateForeignKeyOperation,
-      (op) =>
+      op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
           op.table.name,
@@ -269,7 +269,7 @@ export const makeforeign_keyToStatement = (context: RunContextI) =>
     ],
     [
       DropForeignKeyOperation,
-      (op) =>
+      op =>
         `ALTER TABLE ${makeTableIdentifier(
           context.schema,
           op.table.name,
@@ -286,7 +286,7 @@ export const makeToStatement = (context: RunContextI) =>
     [ForeignKeyOperation, makeforeign_keyToStatement(context)],
     [
       Unknown,
-      (op) => {
+      op => {
         throw new Error(`Unknown operation: ${JSON.stringify(op, null, 2)}`);
       },
     ],

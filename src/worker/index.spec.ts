@@ -236,7 +236,7 @@ describe("worker secrets, task wrapping, and after functions", () => {
     const myTask = jest.fn();
     const wrappedTask = wrapTask(client, cryptr, myTask);
 
-    await wrappedTask(payload, null as any as JobHelpers);
+    await wrappedTask(payload, (null as any) as JobHelpers);
     expect(myTask).toHaveBeenCalled();
     expect(myTask).toHaveBeenCalledWith(expectedPayload, null);
 

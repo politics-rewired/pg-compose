@@ -55,7 +55,7 @@ const introspectColumns = async (
 
   const pgAttributes: PgAttribute[] = result.rows;
 
-  return pgAttributes.map((attr) => ({
+  return pgAttributes.map(attr => ({
     name: attr.attname,
     type: attr.typname,
     nullable: !attr.attnotnull,
@@ -132,7 +132,7 @@ const introspectIndexes = async (
   );
 
   const indexes: PgIndex[] = result.rows;
-  return indexes.map((idx) => ({
+  return indexes.map(idx => ({
     name: idx.index_name,
     unique: idx.is_unique,
     primary_key: idx.is_primary,
@@ -141,15 +141,15 @@ const introspectIndexes = async (
       idx.primary_key_constraint_name,
     ),
     on: idx.columns
-      .filter((c) => c.is_key)
-      .map((c) => ({
+      .filter(c => c.is_key)
+      .map(c => ({
         column: c.column,
         order: c.order,
         nulls: c.nulls_status,
       })),
     include: idx.columns
-      .filter((c) => !c.is_key)
-      .map((c) => ({
+      .filter(c => !c.is_key)
+      .map(c => ({
         column: c.column,
         order: c.order,
         nulls: c.nulls_status,
@@ -198,7 +198,7 @@ const introspectGetters = async (
 
   const procs: PgProc[] = results.rows;
 
-  return procs.map((p) => {
+  return procs.map(p => {
     const v = p.volatility === "i" ? "immutable" : "stable";
 
     return {
@@ -269,11 +269,11 @@ export const introspectTriggers = async (
   const pgTriggers: PgTrigger[] = result.rows;
   const triggers: TriggerI[] = [];
 
-  const groupedByEvent = groupBy(pgTriggers, (t) => t.cond_event);
+  const groupedByEvent = groupBy(pgTriggers, t => t.cond_event);
 
   for (const event of Object.keys(groupedByEvent)) {
     if (TriggerTiming.guard(event)) {
-      const sortedByName = sortBy(groupedByEvent[event], (t) => t.trigger_name);
+      const sortedByName = sortBy(groupedByEvent[event], t => t.trigger_name);
 
       sortedByName.forEach((trig, idx) => {
         triggers.push({
@@ -332,7 +332,7 @@ export const introspectForeignKeys = async (
 
   const rows: PgFk[] = result.rows;
 
-  const fks: ForeignKeyI[] = rows.map((fk) => ({
+  const fks: ForeignKeyI[] = rows.map(fk => ({
     name: fk.constraint_name,
     on: fk.constrained_column_names,
     references: {
@@ -349,15 +349,19 @@ export const introspectTable = async (
   name: PgIdentifierI,
   context: RunContextI,
 ): Promise<TableI> => {
-  const [columns, indexes, getters, triggers, foreign_keys] = await Promise.all(
-    [
-      introspectColumns(client, name, context),
-      introspectIndexes(client, name, context),
-      introspectGetters(client, name, context),
-      introspectTriggers(client, name, context),
-      introspectForeignKeys(client, name, context),
-    ],
-  );
+  const [
+    columns,
+    indexes,
+    getters,
+    triggers,
+    foreign_keys,
+  ] = await Promise.all([
+    introspectColumns(client, name, context),
+    introspectIndexes(client, name, context),
+    introspectGetters(client, name, context),
+    introspectTriggers(client, name, context),
+    introspectForeignKeys(client, name, context),
+  ]);
 
   const table: TableI = {
     name,

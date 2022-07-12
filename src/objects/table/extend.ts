@@ -8,45 +8,40 @@ import {
   TriggerI,
 } from "./records";
 
-const identity =
-  (
-    _table: TableI,
-    _traitImplementation: TraitImplementationI | undefined,
-    _traitRequirement: TraitRequirementI | undefined,
-  ) =>
-  (x: any) =>
-    x;
+const identity = (
+  _table: TableI,
+  _traitImplementation: TraitImplementationI | undefined,
+  _traitRequirement: TraitRequirementI | undefined,
+) => (x: any) => x;
 
-const makeTransformTrigger =
-  (
-    table: TableI,
-    traitImplementation: TraitImplementationI | undefined,
-    traitRequirement: TraitRequirementI | undefined,
-  ) =>
-  (trigger: TriggerI) => {
-    if (traitImplementation === undefined || traitRequirement === undefined) {
-      return trigger;
-    }
+const makeTransformTrigger = (
+  table: TableI,
+  traitImplementation: TraitImplementationI | undefined,
+  traitRequirement: TraitRequirementI | undefined,
+) => (trigger: TriggerI) => {
+  if (traitImplementation === undefined || traitRequirement === undefined) {
+    return trigger;
+  }
 
-    const traitVars = (traitRequirement.columns || []).reduce(
-      (acc, col) =>
-        Object.assign(acc, {
-          [col.name]:
-            traitImplementation.via &&
-            traitImplementation.via.columns &&
-            traitImplementation.via.columns[col.name]
-              ? traitImplementation.via.columns[col.name]
-              : col.name,
-        }),
-      {},
-    );
+  const traitVars = (traitRequirement.columns || []).reduce(
+    (acc, col) =>
+      Object.assign(acc, {
+        [col.name]:
+          traitImplementation.via &&
+          traitImplementation.via.columns &&
+          traitImplementation.via.columns[col.name]
+            ? traitImplementation.via.columns[col.name]
+            : col.name,
+      }),
+    {},
+  );
 
-    traitVars[traitImplementation.trait] = table.name;
+  traitVars[traitImplementation.trait] = table.name;
 
-    return Object.assign({}, trigger, {
-      body: render(trigger.body, traitVars),
-    });
-  };
+  return Object.assign({}, trigger, {
+    body: render(trigger.body, traitVars),
+  });
+};
 
 type Transformer<T> = (
   table: TableI,
