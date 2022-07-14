@@ -142,10 +142,18 @@ const introspectIndexes = async (
     ),
     on: idx.columns
       .filter(c => c.is_key)
-      .map(c => ({ column: c.column, order: c.order, nulls: c.nulls_status })),
+      .map(c => ({
+        column: c.column,
+        order: c.order,
+        nulls: c.nulls_status,
+      })),
     include: idx.columns
       .filter(c => !c.is_key)
-      .map(c => ({ column: c.column, order: c.order, nulls: c.nulls_status })),
+      .map(c => ({
+        column: c.column,
+        order: c.order,
+        nulls: c.nulls_status,
+      })),
   }));
 };
 
