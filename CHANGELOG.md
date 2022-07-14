@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.1](https://github.com/politics-rewired/pg-compose/compare/v1.0.0...v1.0.1) (2022-07-14)
+
 ## [1.0.0](https://github.com/politics-rewired/pg-compose/compare/v0.0.25...v1.0.0) (2021-04-15)
 
 ### [0.0.25](https://github.com/politics-rewired/pg-compose/compare/v0.0.24...v0.0.25) (2021-02-11)
