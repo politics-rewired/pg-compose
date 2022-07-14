@@ -51,7 +51,9 @@ const ColumnArbitrary = fc
 const TableArbitary = fc.record({
   kind: fc.constant("Table"),
   name: PgIdentifierArbitrary,
-  columns: fc.array(ColumnArbitrary),
+  columns: fc.uniqueArray(ColumnArbitrary, {
+    selector: c => c.name,
+  }),
   rls_enabled: fc.boolean(),
 });
 
