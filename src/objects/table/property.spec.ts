@@ -95,6 +95,7 @@ const TableArbitary = fc.record({
   kind: fc.constant("Table"),
   name: PgIdentifierArbitrary,
   columns: fc.uniqueArray(ColumnArbitrary, {
+    maxLength: 2,
     selector: c => c.name,
   }),
   rls_enabled: fc.boolean(),
