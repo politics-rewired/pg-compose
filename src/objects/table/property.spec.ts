@@ -17,36 +17,76 @@ type RecordShape = {
 };
 
 const ColumnArbitrary = fc.oneof(
+  // text
   fc
     .record<RecordShape>({
       name: PgIdentifierArbitrary,
-      nullable: fc.boolean(),
+      nullable: fc.constant(true),
       type: fc.constant("text"),
       default: fc.oneof(fc.constant(undefined), fc.asciiString()),
     })
     .filter(Column.guard),
+  // NOT NULL text
   fc
     .record<RecordShape>({
       name: PgIdentifierArbitrary,
-      nullable: fc.boolean(),
+      nullable: fc.constant(false),
+      type: fc.constant("text"),
+      default: fc.oneof(fc.asciiString()),
+    })
+    .filter(Column.guard),
+  // numeric
+  fc
+    .record<RecordShape>({
+      name: PgIdentifierArbitrary,
+      nullable: fc.constant(true),
       type: fc.constant("numeric"),
       default: fc.oneof(fc.constant(undefined), fc.float()),
     })
     .filter(Column.guard),
+  // NOT NULL numeric
   fc
     .record<RecordShape>({
       name: PgIdentifierArbitrary,
-      nullable: fc.boolean(),
+      nullable: fc.constant(false),
+      type: fc.constant("numeric"),
+      default: fc.oneof(fc.float()),
+    })
+    .filter(Column.guard),
+  // integer
+  fc
+    .record<RecordShape>({
+      name: PgIdentifierArbitrary,
+      nullable: fc.constant(true),
       type: fc.constant("integer"),
       default: fc.oneof(fc.constant(undefined), fc.integer()),
     })
     .filter(Column.guard),
+  // NOT NULL integer
   fc
     .record<RecordShape>({
       name: PgIdentifierArbitrary,
-      nullable: fc.boolean(),
+      nullable: fc.constant(false),
+      type: fc.constant("integer"),
+      default: fc.oneof(fc.integer()),
+    })
+    .filter(Column.guard),
+  // timestamp
+  fc
+    .record<RecordShape>({
+      name: PgIdentifierArbitrary,
+      nullable: fc.constant(true),
       type: fc.constant("timestamp"),
       default: fc.oneof(fc.constant(undefined), fc.integer()),
+    })
+    .filter(Column.guard),
+  // NOT NULL timestamp
+  fc
+    .record<RecordShape>({
+      name: PgIdentifierArbitrary,
+      nullable: fc.constant(false),
+      type: fc.constant("timestamp"),
+      default: fc.oneof(fc.integer()),
     })
     .filter(Column.guard),
 );
