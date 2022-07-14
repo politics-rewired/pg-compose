@@ -1,5 +1,4 @@
-import fc, { Arbitrary } from "fast-check";
-import { sample } from "lodash";
+import fc from "fast-check";
 
 import { PgIdentifier } from "../core";
 import { checkIdempotency } from "../test-helpers";
@@ -17,36 +16,40 @@ type RecordShape = {
   nullable: boolean;
 };
 
-type RecordTypeDefaultArbitrary = {
-  [A in keyof Pick<RecordShape, "type" | "default">]: Arbitrary<RecordShape[A]>;
-};
-
-const pairings: RecordTypeDefaultArbitrary[] = [
-  {
-    type: fc.constant("text"),
-    default: fc.oneof(fc.constant(undefined), fc.asciiString()),
-  },
-  {
-    type: fc.constant("numeric"),
-    default: fc.oneof(fc.constant(undefined), fc.float()),
-  },
-  {
-    type: fc.constant("integer"),
-    default: fc.oneof(fc.constant(undefined), fc.integer()),
-  },
-  {
-    type: fc.constant("timestamp"),
-    default: fc.oneof(fc.constant(undefined), fc.integer()),
-  },
-];
-
-const ColumnArbitrary = fc
-  .record<RecordShape>({
-    name: PgIdentifierArbitrary,
-    nullable: fc.boolean(),
-    ...sample(pairings)!,
-  })
-  .filter(Column.guard);
+const ColumnArbitrary = fc.oneof(
+  fc
+    .record<RecordShape>({
+      name: PgIdentifierArbitrary,
+      nullable: fc.boolean(),
+      type: fc.constant("text"),
+      default: fc.oneof(fc.constant(undefined), fc.asciiString()),
+    })
+    .filter(Column.guard),
+  fc
+    .record<RecordShape>({
+      name: PgIdentifierArbitrary,
+      nullable: fc.boolean(),
+      type: fc.constant("numeric"),
+      default: fc.oneof(fc.constant(undefined), fc.float()),
+    })
+    .filter(Column.guard),
+  fc
+    .record<RecordShape>({
+      name: PgIdentifierArbitrary,
+      nullable: fc.boolean(),
+      type: fc.constant("integer"),
+      default: fc.oneof(fc.constant(undefined), fc.integer()),
+    })
+    .filter(Column.guard),
+  fc
+    .record<RecordShape>({
+      name: PgIdentifierArbitrary,
+      nullable: fc.boolean(),
+      type: fc.constant("timestamp"),
+      default: fc.oneof(fc.constant(undefined), fc.integer()),
+    })
+    .filter(Column.guard),
+);
 
 const TableArbitary = fc.record({
   kind: fc.constant("Table"),
